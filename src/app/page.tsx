@@ -1,16 +1,43 @@
+
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { HeroScene } from "@/components/hero-scene";
 import { FeaturedCarousel } from "@/components/featured-carousel";
 import { TrendingNews } from "@/components/trending-news";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Trophy, Users, Zap, PlayCircle, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { ShieldCheck, Trophy, Users, Zap, PlayCircle, ChevronRight, X, Film, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useFirestore, useCollection } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
+  const [activeTrailer, setActiveTrailer] = useState<any>(null);
+  const firestore = useFirestore();
+  
+  const gamesRef = firestore ? collection(firestore, "games") : null;
+  const { data: allGames, loading: gamesLoading } = useCollection(gamesRef);
+
+  const gamesWithTrailers = allGames?.filter(g => g.trailerUrl) || [];
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+  };
+
   return (
     <div className="relative min-h-screen bg-background overflow-x-hidden">
       <Navbar />
@@ -39,14 +66,92 @@ export default function Home() {
               Step into FIDE GAMES. A high-fidelity gaming sanctuary designed for the next generation of digital pioneers.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 neon-border h-14 px-10 rounded-full font-headline font-bold text-lg group">
+              <Button size="lg" onClick={() => document.getElementById('games')?.scrollIntoView({ behavior: 'smooth' })} className="bg-primary hover:bg-primary/90 neon-border h-14 px-10 rounded-full font-headline font-bold text-lg group">
                 ENTER THE NEXUS
                 <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button size="lg" variant="outline" className="h-14 px-10 rounded-full border-white/10 glass font-headline font-bold text-lg hover:border-primary/50">
-                <PlayCircle className="w-6 h-6 mr-3 text-secondary" />
-                WATCH TRAILER
-              </Button>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="lg" variant="outline" className="h-14 px-10 rounded-full border-white/10 glass font-headline font-bold text-lg hover:border-primary/50">
+                    <PlayCircle className="w-6 h-6 mr-3 text-secondary" />
+                    WATCH TRAILER
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-6xl w-[95vw] h-[85vh] glass border-white/10 p-0 overflow-hidden flex flex-col md:flex-row">
+                  {/* Sidebar with game list */}
+                  <div className="w-full md:w-80 border-r border-white/5 bg-black/40 flex flex-col">
+                    <div className="p-6 border-b border-white/5 flex items-center gap-3">
+                      <Film className="w-5 h-5 text-primary" />
+                      <DialogTitle className="font-headline font-bold uppercase tracking-widest text-sm">Visual Intel Registry</DialogTitle>
+                    </div>
+                    <ScrollArea className="flex-1">
+                      <div className="p-4 space-y-2">
+                        {gamesLoading ? (
+                          <div className="py-20 flex justify-center">
+                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                          </div>
+                        ) : gamesWithTrailers.length > 0 ? (
+                          gamesWithTrailers.map((game) => (
+                            <button
+                              key={game.id}
+                              onClick={() => setActiveTrailer(game)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left group ${activeTrailer?.id === game.id ? 'bg-primary/20 border border-primary/30' : 'hover:bg-white/5 border border-transparent'}`}
+                            >
+                              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                <img src={game.coverUrl} className="w-full h-full object-cover" alt={game.title} />
+                              </div>
+                              <div className="min-w-0">
+                                <p className={`font-bold text-sm truncate ${activeTrailer?.id === game.id ? 'text-primary' : 'text-white'}`}>{game.title}</p>
+                                <Badge variant="outline" className="mt-1 text-[10px] py-0 border-white/10">{game.category}</Badge>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <p className="text-center py-10 text-muted-foreground text-xs italic">No visual intel available.</p>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </div>
+
+                  {/* Player area */}
+                  <div className="flex-1 bg-black relative flex items-center justify-center p-4">
+                    {!activeTrailer && gamesWithTrailers.length > 0 && !gamesLoading && (
+                       <div className="text-center space-y-4">
+                          <PlayCircle className="w-20 h-20 text-white/10 mx-auto" />
+                          <p className="font-headline text-muted-foreground uppercase tracking-[0.3em]">Select a transmission to begin</p>
+                       </div>
+                    )}
+                    
+                    {activeTrailer && (
+                      <div className="w-full h-full flex flex-col gap-4">
+                        <div className="relative flex-1 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                          {getYouTubeEmbedUrl(activeTrailer.trailerUrl) ? (
+                            <iframe
+                              src={`${getYouTubeEmbedUrl(activeTrailer.trailerUrl)}?autoplay=1`}
+                              title={`${activeTrailer.title} Trailer`}
+                              className="absolute inset-0 w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video 
+                              src={activeTrailer.trailerUrl} 
+                              autoPlay 
+                              controls 
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                           <h2 className="text-2xl font-headline font-bold text-white uppercase tracking-tighter">{activeTrailer.title}</h2>
+                           <Badge className="bg-primary/10 text-primary border-primary/30">{activeTrailer.category}</Badge>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </motion.div>
         </div>
