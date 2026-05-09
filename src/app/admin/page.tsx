@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -15,7 +16,8 @@ import {
   Database,
   Trash2,
   LogOut,
-  Filter
+  Filter,
+  Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +58,7 @@ import { useRouter } from "next/navigation";
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAddingGame, setIsAddingGame] = useState(false);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
   const firestore = useFirestore();
   const auth = useAuth();
   const router = useRouter();
@@ -66,15 +69,21 @@ export default function AdminDashboard() {
     title: "",
     coverUrl: "",
     downloadUrl: "",
-    category: "Action"
+    category: ""
   });
+
+  // New Category Form State
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const gamesRef = firestore ? collection(firestore, "games") : null;
   const { data: games, loading: gamesLoading } = useCollection(gamesRef);
 
+  const categoriesRef = firestore ? collection(firestore, "categories") : null;
+  const { data: categories, loading: categoriesLoading } = useCollection(categoriesRef);
+
   const handleAddGame = () => {
     if (!firestore) return;
-    if (!newGame.title || !newGame.coverUrl || !newGame.downloadUrl) {
+    if (!newGame.title || !newGame.coverUrl || !newGame.downloadUrl || !newGame.category) {
       toast({ title: "Validation Error", description: "Please ensure all mission parameters are set.", variant: "destructive" });
       return;
     }
@@ -84,7 +93,7 @@ export default function AdminDashboard() {
       createdAt: serverTimestamp()
     }).then(() => {
       toast({ title: "Success", description: "Game title successfully uploaded to the Nexus." });
-      setNewGame({ title: "", coverUrl: "", downloadUrl: "", category: "Action" });
+      setNewGame({ title: "", coverUrl: "", downloadUrl: "", category: "" });
       setIsAddingGame(false);
     }).catch((e: any) => {
       toast({ title: "Upload Failed", description: e.message, variant: "destructive" });
@@ -95,6 +104,30 @@ export default function AdminDashboard() {
     if (!firestore) return;
     deleteDoc(doc(firestore, "games", gameId)).then(() => {
       toast({ title: "Deleted", description: "Game title removed from the database." });
+    }).catch((e: any) => {
+      toast({ title: "Deletion Failed", description: e.message, variant: "destructive" });
+    });
+  };
+
+  const handleAddCategory = () => {
+    if (!firestore || !newCategoryName.trim()) return;
+    
+    addDoc(collection(firestore, "categories"), {
+      name: newCategoryName.trim(),
+      createdAt: serverTimestamp()
+    }).then(() => {
+      toast({ title: "Success", description: "New operational category established." });
+      setNewCategoryName("");
+      setIsAddingCategory(false);
+    }).catch((e: any) => {
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
+    });
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    if (!firestore) return;
+    deleteDoc(doc(firestore, "categories", categoryId)).then(() => {
+      toast({ title: "Deleted", description: "Category decommissioned." });
     }).catch((e: any) => {
       toast({ title: "Deletion Failed", description: e.message, variant: "destructive" });
     });
@@ -123,7 +156,8 @@ export default function AdminDashboard() {
             {[
               { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
               { id: "users", icon: Users, label: "User Registry" },
-              { id: "games", icon: Gamepad, label: "Games Database" },
+              { id: "games", icon: Gamepad, label: "Games Repository" },
+              { id: "categories", icon: Layers, label: "Categories" },
               { id: "settings", icon: Settings, label: "Nexus Settings" },
             ].map((item) => (
               <button 
@@ -208,12 +242,12 @@ export default function AdminDashboard() {
                   </div>
                   <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EFEFEF]">
                     <div className="w-12 h-12 bg-[#E5F9F1] rounded-2xl flex items-center justify-center mb-6">
-                      <Download className="w-6 h-6 text-[#38CB89]" />
+                      <Layers className="w-6 h-6 text-[#38CB89]" />
                     </div>
-                    <p className="text-sm font-bold text-[#808191] mb-2">Global Deployments</p>
+                    <p className="text-sm font-bold text-[#808191] mb-2">Operational Categories</p>
                     <div className="flex items-end gap-3">
-                      <h3 className="text-4xl font-headline font-bold">84,201</h3>
-                      <span className="text-green-500 font-bold text-sm mb-1">+5.4%</span>
+                      <h3 className="text-4xl font-headline font-bold">{categories?.length || 0}</h3>
+                      <span className="text-green-500 font-bold text-sm mb-1">Online</span>
                     </div>
                   </div>
                 </div>
@@ -234,14 +268,6 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
                 <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] overflow-hidden">
-                  <div className="p-8 border-b border-[#EFEFEF] flex justify-between items-center bg-[#FCFCFC]">
-                    <div className="flex items-center gap-4">
-                      <Filter className="w-4 h-4 text-[#808191]" />
-                      <span className="text-sm font-bold text-[#808191]">Filters:</span>
-                      <Badge variant="outline" className="rounded-lg px-3 py-1 text-[#1A1D1F] border-[#EFEFEF] bg-white">All Agents</Badge>
-                      <Badge variant="outline" className="rounded-lg px-3 py-1 text-[#808191] border-[#EFEFEF] hover:bg-white cursor-pointer">Active</Badge>
-                    </div>
-                  </div>
                   <Table>
                       <TableHeader className="bg-white">
                         <TableRow className="hover:bg-transparent">
@@ -337,11 +363,12 @@ export default function AdminDashboard() {
                               <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
-                              <SelectItem value="Action">Action</SelectItem>
-                              <SelectItem value="RPG">RPG</SelectItem>
-                              <SelectItem value="Strategy">Strategy</SelectItem>
-                              <SelectItem value="Adventure">Adventure</SelectItem>
-                              <SelectItem value="Racing">Racing</SelectItem>
+                              {categories?.map((cat: any) => (
+                                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                              ))}
+                              {(!categories || categories.length === 0) && (
+                                <p className="p-2 text-xs text-[#808191] italic">No categories available. Please add them in the Categories tab.</p>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
@@ -389,7 +416,6 @@ export default function AdminDashboard() {
                             </TableCell>
                             <TableCell className="py-6 px-8">
                               <div className="flex items-center justify-center gap-2">
-                                <Button size="sm" variant="ghost" className="rounded-lg text-[#4D86FF] hover:bg-[#4D86FF]/10 h-10 font-bold px-4">Modify</Button>
                                 <Button size="sm" variant="ghost" onClick={() => handleDeleteGame(game.id)} className="rounded-lg text-[#FF6A55] hover:bg-[#FF6A55]/10 h-10 px-3">
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -405,6 +431,67 @@ export default function AdminDashboard() {
                       </TableBody>
                     </Table>
                   )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="categories" className="space-y-8">
+                <div className="flex justify-between items-center">
+                  <h1 className="text-3xl font-headline font-bold">Operational Categories</h1>
+                  <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-[#4D86FF] hover:bg-[#3B71E0] h-12 px-8 rounded-xl font-bold flex gap-3 shadow-[0_10px_20px_rgba(77,134,255,0.2)]">
+                        <Plus className="w-4 h-4" />
+                        New Category
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[400px] rounded-3xl p-8 border-none bg-white">
+                      <DialogHeader className="mb-6">
+                        <DialogTitle className="font-headline text-2xl font-bold">New Category</DialogTitle>
+                        <DialogDescription className="text-[#808191] font-bold">
+                          Add a new classification for the gaming nexus.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="catName" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Category Name</Label>
+                          <Input 
+                            id="catName" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            placeholder="e.g. Cyberpunk" 
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter className="mt-10 gap-3">
+                        <Button variant="ghost" onClick={() => setIsAddingCategory(false)} className="rounded-xl h-12 px-6 font-bold text-[#808191]">Cancel</Button>
+                        <Button onClick={handleAddCategory} className="bg-[#4D86FF] hover:bg-[#3B71E0] rounded-xl h-12 px-10 font-bold text-white">Create</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] overflow-hidden p-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {categoriesLoading ? (
+                      <div className="col-span-full py-20 text-center text-[#808191] animate-pulse">Syncing categories...</div>
+                    ) : (
+                      categories?.map((cat: any) => (
+                        <div key={cat.id} className="p-6 rounded-2xl bg-[#F4F4F4] border border-[#EFEFEF] flex items-center justify-between group hover:border-[#4D86FF] transition-all">
+                          <div>
+                            <p className="font-bold text-lg">{cat.name}</p>
+                            <p className="text-[10px] uppercase tracking-widest text-[#808191] font-bold">Operational</p>
+                          </div>
+                          <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 rounded-lg text-[#FF6A55] opacity-0 group-hover:opacity-100 hover:bg-[#FF6A55]/10 transition-all">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                    {(!categories || categories.length === 0) && !categoriesLoading && (
+                      <div className="col-span-full py-20 text-center text-[#808191] font-bold">No categories defined yet.</div>
+                    )}
+                  </div>
                 </div>
               </TabsContent>
 

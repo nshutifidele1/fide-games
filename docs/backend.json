@@ -23,6 +23,15 @@
         "email": { "type": "string", "format": "email" },
         "role": { "type": "string", "enum": ["user", "admin"] }
       }
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Game category",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" }
+      },
+      "required": ["name"]
     }
   },
   "auth": {
@@ -36,6 +45,10 @@
     "/users/{userId}": {
       "schema": "#/entities/UserProfile",
       "description": "User profile records"
+    },
+    "/categories/{categoryId}": {
+      "schema": "#/entities/Category",
+      "description": "Collection of game categories"
     }
   }
 }
