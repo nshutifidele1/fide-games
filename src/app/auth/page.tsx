@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -16,8 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("nshutifidele1@gmail.com");
+  const [password, setPassword] = useState("12345qwert()");
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
@@ -152,11 +153,11 @@ export default function AuthPage() {
         <div className="hidden md:flex flex-1 p-0">
           <div className="relative w-full h-full overflow-hidden bg-[#0a0a1a] flex items-center justify-center">
             <Image
-              src={illust?.imageUrl || "https://picsum.photos/seed/vr-boy/800/800"}
+              src={illust?.imageUrl || "https://picsum.photos/seed/neon-vr-child/800/800"}
               alt="Artistic Illustration"
               fill
               className="object-cover opacity-90"
-              data-ai-hint="vr headset child"
+              data-ai-hint="neon child vr"
             />
             
             <div className="absolute bottom-8 left-8 flex items-center gap-3 glass p-3 px-5 rounded-2xl">

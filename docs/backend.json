@@ -1,0 +1,41 @@
+
+{
+  "entities": {
+    "Game": {
+      "title": "Game",
+      "description": "A game available on the Fide platform",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "coverUrl": { "type": "string", "format": "uri" },
+        "downloadUrl": { "type": "string", "format": "uri" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "coverUrl", "downloadUrl", "category"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account information",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["user", "admin"] }
+      }
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/games/{gameId}": {
+      "schema": "#/entities/Game",
+      "description": "Collection of available games"
+    },
+    "/users/{userId}": {
+      "schema": "#/entities/UserProfile",
+      "description": "User profile records"
+    }
+  }
+}
