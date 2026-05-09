@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -35,18 +36,25 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
-        toast({ title: "Welcome back!", description: "Successfully entered the nexus." });
+        toast({ title: "Authentication Successful", description: "Identity verified. Entering the Nexus." });
+        
+        // Admin redirect logic
+        if (email === "nshutifidele1@gmail.com") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: username });
-        toast({ title: "Welcome agent!", description: "Your digital sanctuary is ready." });
+        toast({ title: "Registration Complete", description: "Your digital signature has been recorded." });
+        router.push("/");
       }
-      router.push("/");
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Access Denied",
-        description: error.message || "Could not authenticate. Please check your credentials.",
+        description: error.message || "Protocol failure. Please verify your credentials.",
       });
     } finally {
       setIsLoading(false);
@@ -60,7 +68,7 @@ export default function AuthPage() {
         className="absolute top-8 left-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors group z-20"
       >
         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-        <span className="font-headline text-sm font-bold uppercase tracking-widest">Nexus Home</span>
+        <span className="font-headline text-sm font-bold uppercase tracking-widest text-primary">Nexus Home</span>
       </Link>
 
       <motion.div 
@@ -73,17 +81,17 @@ export default function AuthPage() {
           <div className="max-w-md mx-auto w-full">
             <div className="mb-12 text-center md:text-left">
               <h1 className="text-6xl font-headline font-bold mb-4 tracking-tighter text-white">
-                {isLogin ? "Sign In" : "Sign Up"}
+                {isLogin ? "Authenticate" : "Register"}
               </h1>
               <p className="text-[#808191] text-lg font-body font-medium">
-                Enter the FIDE digital sanctuary.
+                Enter your neural credentials to access the FIDE sanctuary.
               </p>
             </div>
 
             <form className="space-y-8" onSubmit={handleSubmit}>
               {!isLogin && (
                 <div className="space-y-3 relative group">
-                  <Label className="text-xs uppercase tracking-[0.2em] text-[#808191] font-headline font-bold">Agent Name</Label>
+                  <Label className="text-xs uppercase tracking-[0.2em] text-[#808191] font-headline font-bold">Agent Handle</Label>
                   <div className="relative">
                     <Input 
                       placeholder="Cipher-01" 
@@ -98,7 +106,7 @@ export default function AuthPage() {
               )}
 
               <div className="space-y-3 relative group">
-                <Label className="text-xs uppercase tracking-[0.2em] text-[#808191] font-headline font-bold">Registry Email</Label>
+                <Label className="text-xs uppercase tracking-[0.2em] text-[#808191] font-headline font-bold">Protocol Email</Label>
                 <div className="relative">
                   <Input 
                     type="email"
@@ -133,7 +141,7 @@ export default function AuthPage() {
                   disabled={isLoading}
                   className="w-full h-16 rounded-2xl bg-[#4D86FF] hover:bg-[#3B71E0] text-white font-headline font-bold text-xl transition-all duration-300 shadow-[0_20px_40px_rgba(77,134,255,0.2)]"
                 >
-                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isLogin ? "Authenticate" : "Register Agent")}
+                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isLogin ? "Confirm Identity" : "Establish Link")}
                 </Button>
               </div>
             </form>
@@ -143,7 +151,7 @@ export default function AuthPage() {
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-[#808191] hover:text-white text-sm font-headline tracking-widest transition-colors uppercase font-bold"
               >
-                {isLogin ? "Need new credentials?" : "Already registered?"}
+                {isLogin ? "Request new credentials?" : "Existing agent?"}
               </button>
             </div>
           </div>
@@ -164,8 +172,8 @@ export default function AuthPage() {
                <Gamepad2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-headline font-bold text-2xl tracking-tighter text-white">FIDE NEXUS</p>
-              <p className="text-[10px] uppercase tracking-widest text-[#4D86FF] font-bold">Operational Phase 4.0</p>
+              <p className="font-headline font-bold text-2xl tracking-tighter text-white">FIDE GAMES</p>
+              <p className="text-[10px] uppercase tracking-widest text-[#4D86FF] font-bold">Platform Admin Gateway</p>
             </div>
           </div>
         </div>

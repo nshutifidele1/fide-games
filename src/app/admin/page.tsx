@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Search, 
   Bell, 
@@ -12,7 +13,9 @@ import {
   Upload,
   Trash2,
   LogOut,
-  Layers
+  Layers,
+  ShieldAlert,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +47,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useFirestore, useCollection, useAuth } from "@/firebase";
+import { useFirestore, useCollection, useAuth, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
@@ -56,6 +59,7 @@ export default function AdminDashboard() {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const firestore = useFirestore();
   const auth = useAuth();
+  const { user, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -76,10 +80,46 @@ export default function AdminDashboard() {
   const categoriesRef = firestore ? collection(firestore, "categories") : null;
   const { data: categories, loading: categoriesLoading } = useCollection(categoriesRef);
 
+  // Authorization check
+  useEffect(() => {
+    if (!userLoading && (!user || user.email !== "nshutifidele1@gmail.com")) {
+      toast({ 
+        title: "Restricted Area", 
+        description: "Your credentials do not have administrative clearance for this terminal.",
+        variant: "destructive"
+      });
+      router.push("/");
+    }
+  }, [user, userLoading, router, toast]);
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-[#111315] flex items-center justify-center flex-col gap-4">
+        <Loader2 className="w-12 h-12 text-[#4D86FF] animate-spin" />
+        <p className="font-headline text-white font-bold tracking-widest uppercase">Verifying Clearances...</p>
+      </div>
+    );
+  }
+
+  if (!user || user.email !== "nshutifidele1@gmail.com") {
+    return (
+      <div className="min-h-screen bg-[#111315] flex items-center justify-center flex-col gap-8 p-6 text-center">
+        <div className="w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center">
+          <ShieldAlert className="w-12 h-12 text-destructive" />
+        </div>
+        <div className="max-w-md">
+          <h1 className="text-4xl font-headline font-bold text-white mb-4">ACCESS REJECTED</h1>
+          <p className="text-[#808191] font-body mb-8">This terminal is reserved for Super Administrator personnel. Unauthorized access attempts are logged.</p>
+          <Button onClick={() => router.push("/auth")} className="bg-[#4D86FF] h-14 px-10 rounded-xl font-bold">Return to Identity Gateway</Button>
+        </div>
+      </div>
+    );
+  }
+
   const handleAddGame = () => {
     if (!firestore) return;
     if (!newGame.title || !newGame.coverUrl || !newGame.downloadUrl || !newGame.category) {
-      toast({ title: "Validation Error", description: "Please ensure all mission parameters are set.", variant: "destructive" });
+      toast({ title: "Validation Error", description: "All payload parameters must be defined.", variant: "destructive" });
       return;
     }
 
@@ -87,20 +127,20 @@ export default function AdminDashboard() {
       ...newGame,
       createdAt: serverTimestamp()
     }).then(() => {
-      toast({ title: "Success", description: "Game title successfully uploaded to the Nexus." });
+      toast({ title: "Success", description: "New title deployed to the Nexus repository." });
       setNewGame({ title: "", coverUrl: "", downloadUrl: "", category: "" });
       setIsAddingGame(false);
     }).catch((e: any) => {
-      toast({ title: "Upload Failed", description: e.message, variant: "destructive" });
+      toast({ title: "Deployment Error", description: e.message, variant: "destructive" });
     });
   };
 
   const handleDeleteGame = (gameId: string) => {
     if (!firestore) return;
     deleteDoc(doc(firestore, "games", gameId)).then(() => {
-      toast({ title: "Deleted", description: "Game title removed from the database." });
+      toast({ title: "Deleted", description: "Title purged from the repository." });
     }).catch((e: any) => {
-      toast({ title: "Deletion Failed", description: e.message, variant: "destructive" });
+      toast({ title: "Purge Failed", description: e.message, variant: "destructive" });
     });
   };
 
@@ -111,11 +151,11 @@ export default function AdminDashboard() {
       name: newCategoryName.trim(),
       createdAt: serverTimestamp()
     }).then(() => {
-      toast({ title: "Success", description: "New operational category established." });
+      toast({ title: "Success", description: "New classification category established." });
       setNewCategoryName("");
       setIsAddingCategory(false);
     }).catch((e: any) => {
-      toast({ title: "Failed", description: e.message, variant: "destructive" });
+      toast({ title: "Registry Failed", description: e.message, variant: "destructive" });
     });
   };
 
@@ -124,14 +164,14 @@ export default function AdminDashboard() {
     deleteDoc(doc(firestore, "categories", categoryId)).then(() => {
       toast({ title: "Deleted", description: "Category decommissioned." });
     }).catch((e: any) => {
-      toast({ title: "Deletion Failed", description: e.message, variant: "destructive" });
+      toast({ title: "Decommission Failed", description: e.message, variant: "destructive" });
     });
   };
 
   const handleLogout = async () => {
     if (auth) {
       await signOut(auth);
-      router.push("/");
+      router.push("/auth");
     }
   };
 
@@ -141,7 +181,7 @@ export default function AdminDashboard() {
       <aside className="w-[280px] bg-[#111315] text-[#808191] flex flex-col shrink-0 border-r border-[#272B30]">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-10 px-2">
-            <div className="w-10 h-10 bg-[#4D86FF] rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#4D86FF] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(77,134,255,0.4)]">
               <Gamepad className="w-6 h-6 text-white" />
             </div>
             <span className="font-headline font-bold text-xl tracking-tight text-white uppercase italic">Fide Games</span>
@@ -183,12 +223,12 @@ export default function AdminDashboard() {
         {/* Header */}
         <header className="h-[96px] bg-white border-b border-[#EFEFEF] flex items-center justify-between px-10">
           <div className="flex items-center gap-4">
-             <h2 className="text-2xl font-bold font-headline">Platform Control</h2>
+             <h2 className="text-2xl font-bold font-headline uppercase tracking-tight">Platform Control Center</h2>
           </div>
           <div className="flex items-center gap-6">
             <div className="relative group hidden sm:block">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#808191]" />
-              <Input placeholder="Global Search..." className="pl-11 w-80 h-12 bg-[#F4F4F4] border-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#4D86FF]" />
+              <Input placeholder="Registry Scan..." className="pl-11 w-80 h-12 bg-[#F4F4F4] border-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#4D86FF]" />
             </div>
             <button className="relative p-3 rounded-xl bg-[#F4F4F4] text-[#1A1D1F] hover:bg-[#EFEFEF] transition-colors">
               <Bell className="w-5 h-5" />
@@ -197,9 +237,9 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-4 pl-6 border-l border-[#EFEFEF]">
               <div className="text-right">
                 <p className="text-sm font-bold">Admin Fide</p>
-                <p className="text-[11px] text-[#808191] font-bold">Super Administrator</p>
+                <p className="text-[11px] text-[#4D86FF] font-bold uppercase tracking-widest">Super Administrator</p>
               </div>
-              <Avatar className="w-12 h-12 rounded-xl border-2 border-[#EFEFEF]">
+              <Avatar className="w-12 h-12 rounded-xl border-2 border-[#4D86FF]/20">
                 <AvatarImage src="https://picsum.photos/seed/admin-x/100/100" />
                 <AvatarFallback>AF</AvatarFallback>
               </Avatar>
@@ -219,7 +259,7 @@ export default function AdminDashboard() {
                     <div className="w-12 h-12 bg-[#EAF2FF] rounded-2xl flex items-center justify-center mb-6">
                       <Users className="w-6 h-6 text-[#4D86FF]" />
                     </div>
-                    <p className="text-sm font-bold text-[#808191] mb-2">Total Platform Agents</p>
+                    <p className="text-sm font-bold text-[#808191] mb-2">Total Verified Agents</p>
                     <div className="flex items-end gap-3">
                       <h3 className="text-4xl font-headline font-bold">142,932</h3>
                       <span className="text-green-500 font-bold text-sm mb-1">+12.5%</span>
@@ -250,7 +290,7 @@ export default function AdminDashboard() {
                 <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
                   <h3 className="text-xl font-bold mb-6">Platform Activity Matrix</h3>
                   <div className="h-64 flex items-center justify-center text-[#808191] italic bg-[#F4F4F4] rounded-2xl">
-                    [ Activity Analytics Component Placeholder ]
+                    [ Activity Analytics Layer - Initializing... ]
                   </div>
                 </div>
               </TabsContent>
