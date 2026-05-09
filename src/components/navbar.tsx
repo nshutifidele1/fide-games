@@ -1,11 +1,21 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Gamepad2, Menu, X } from "lucide-react";
+import { Gamepad2, Menu, X, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUser, useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
@@ -17,6 +27,9 @@ const NAV_LINKS = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const { user } = useUser();
+  const auth = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +38,10 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    if (auth) await signOut(auth);
+  };
 
   return (
     <nav
@@ -58,18 +75,52 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Auth Buttons */}
+        {/* Auth / User Buttons */}
         <div className="hidden lg:flex items-center gap-4">
-          <Link href="/auth">
-            <Button variant="ghost" className="text-foreground/80 hover:text-primary transition-all font-headline font-semibold">
-              Login
-            </Button>
-          </Link>
-          <Link href="/auth">
-            <Button className="bg-primary hover:bg-primary/90 neon-border font-headline font-bold rounded-full px-6 transition-all duration-300">
-              Sign Up
-            </Button>
-          </Link>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-primary/30 p-0">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.photoURL || ""} />
+                    <AvatarFallback className="bg-primary/10 text-primary uppercase">
+                      {user.displayName?.charAt(0) || user.email?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 glass border-primary/20" align="end" forceMount>
+                <DropdownMenuLabel className="font-headline">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-bold leading-none">{user.displayName || "Agent"}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-primary/10" />
+                <DropdownMenuItem className="focus:bg-primary/20 cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile Nexus</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="focus:bg-destructive/20 cursor-pointer text-destructive" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Disconnect</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Link href="/auth">
+                <Button variant="ghost" className="text-foreground/80 hover:text-primary transition-all font-headline font-semibold">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/auth">
+                <Button className="bg-primary hover:bg-primary/90 neon-border font-headline font-bold rounded-full px-6 transition-all duration-300">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -96,16 +147,24 @@ export function Navbar() {
               </Link>
             ))}
             <div className="w-full h-px bg-primary/20" />
-            <Link href="/auth" className="w-full" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="ghost" className="w-full text-xl font-headline font-bold">
-                Login
+            {user ? (
+              <Button variant="ghost" className="w-full text-xl font-headline font-bold text-destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
+                Disconnect
               </Button>
-            </Link>
-            <Link href="/auth" className="w-full" onClick={() => setMobileMenuOpen(false)}>
-              <Button className="w-full bg-primary neon-border text-xl font-headline font-bold py-6">
-                Sign Up
-              </Button>
-            </Link>
+            ) : (
+              <>
+                <Link href="/auth" className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full text-xl font-headline font-bold">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/auth" className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full bg-primary neon-border text-xl font-headline font-bold py-6">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
