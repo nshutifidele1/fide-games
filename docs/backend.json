@@ -34,6 +34,19 @@
         "name": { "type": "string" }
       },
       "required": ["name"]
+    },
+    "News": {
+      "title": "News",
+      "description": "A news article or update on the platform",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "imageUrl", "category"]
     }
   },
   "auth": {
@@ -51,6 +64,10 @@
     "/categories/{categoryId}": {
       "schema": "#/entities/Category",
       "description": "Collection of game categories"
+    },
+    "/news/{newsId}": {
+      "schema": "#/entities/News",
+      "description": "Collection of trending news items"
     }
   }
 }
