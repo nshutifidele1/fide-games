@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Search, 
   Bell, 
@@ -24,7 +24,9 @@ import {
   Image as ImageIcon,
   Activity,
   UserPlus,
-  Clock
+  Clock,
+  TrendingUp,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,12 +59,35 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from "recharts";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { useFirestore, useCollection, useAuth, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp, deleteDoc, doc, query, orderBy, limit } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+
+const chartConfig = {
+  signups: {
+    label: "New Agents",
+    color: "hsl(var(--primary))",
+  },
+} satisfies ChartConfig;
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -107,6 +132,38 @@ export default function AdminDashboard() {
 
   const newsRef = firestore ? query(collection(firestore, "news"), orderBy("createdAt", "desc")) : null;
   const { data: newsItems, loading: newsLoading } = useCollection(newsRef);
+
+  // Analytics Calculation
+  const analyticsData = useMemo(() => {
+    if (!registeredUsers) return [];
+    
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const date = subMonths(new Date(), i);
+      return {
+        month: format(date, "MMM"),
+        start: startOfMonth(date),
+        end: endOfMonth(date),
+        count: 0
+      };
+    }).reverse();
+
+    registeredUsers.forEach((regUser: any) => {
+      if (regUser.createdAt?.toDate) {
+        const userDate = regUser.createdAt.toDate();
+        const monthIndex = last6Months.findIndex(m => 
+          isWithinInterval(userDate, { start: m.start, end: m.end })
+        );
+        if (monthIndex !== -1) {
+          last6Months[monthIndex].count++;
+        }
+      }
+    });
+
+    return last6Months.map(m => ({
+      month: m.month,
+      signups: m.count
+    }));
+  }, [registeredUsers]);
 
   // Authorization check
   useEffect(() => {
@@ -339,33 +396,85 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
-                  <h3 className="text-xl font-bold mb-6">Recent Nexus Activity</h3>
-                  <div className="space-y-4">
-                    {registeredUsers?.slice(0, 5).map((regUser: any) => (
-                      <div key={regUser.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#F4F4F4]/50 border border-transparent hover:border-[#4D86FF]/20 transition-all">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-[#4D86FF]/10 rounded-xl flex items-center justify-center text-[#4D86FF]">
-                            <UserPlus className="w-5 h-5" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Monthly Signup Analytics Chart */}
+                  <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
+                    <div className="flex items-center justify-between mb-8">
+                      <div>
+                        <h3 className="text-xl font-bold">Agent Acquisition Analytics</h3>
+                        <p className="text-xs text-[#808191] font-bold uppercase tracking-widest mt-1">Last 6 Months Signup Velocity</p>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-500 bg-green-50 px-3 py-1 rounded-full">
+                        <TrendingUp className="w-4 h-4" />
+                        <span className="text-xs font-bold">Real-time Data</span>
+                      </div>
+                    </div>
+                    
+                    <div className="h-[300px] w-full">
+                      <ChartContainer config={chartConfig} className="h-full w-full">
+                        <AreaChart data={analyticsData}>
+                          <defs>
+                            <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="var(--color-signups)" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="var(--color-signups)" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EFEFEF" />
+                          <XAxis 
+                            dataKey="month" 
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#808191', fontSize: 12, fontWeight: 700 }}
+                            dy={10}
+                          />
+                          <YAxis 
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#808191', fontSize: 12, fontWeight: 700 }}
+                          />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Area 
+                            type="monotone" 
+                            dataKey="signups" 
+                            stroke="var(--color-signups)" 
+                            strokeWidth={4}
+                            fillOpacity={1} 
+                            fill="url(#colorSignups)" 
+                          />
+                        </AreaChart>
+                      </ChartContainer>
+                    </div>
+                  </div>
+
+                  {/* Recent Nexus Activity (Compact) */}
+                  <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
+                    <h3 className="text-xl font-bold mb-6">Recent Nexus Activity</h3>
+                    <div className="space-y-4">
+                      {registeredUsers?.slice(0, 5).map((regUser: any) => (
+                        <div key={regUser.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#F4F4F4]/50 border border-transparent hover:border-[#4D86FF]/20 transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-[#4D86FF]/10 rounded-xl flex items-center justify-center text-[#4D86FF]">
+                              <UserPlus className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold truncate">{regUser.displayName}</p>
+                              <p className="text-[10px] text-[#808191] uppercase font-bold truncate">New Agent Link</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-bold">New Agent Established Link: <span className="text-[#4D86FF]">{regUser.displayName}</span></p>
-                            <p className="text-[10px] text-[#808191] uppercase font-bold">{regUser.email}</p>
+                          <div className="flex items-center gap-2 text-[#808191] shrink-0">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-[10px] font-bold">
+                              {regUser.createdAt?.toDate ? format(regUser.createdAt.toDate(), 'HH:mm') : 'Recent'}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[#808191]">
-                          <Clock className="w-3 h-3" />
-                          <span className="text-[10px] font-bold">
-                            {regUser.createdAt?.toDate ? format(regUser.createdAt.toDate(), 'HH:mm') : 'Recent'}
-                          </span>
+                      ))}
+                      {(!registeredUsers || registeredUsers.length === 0) && (
+                        <div className="h-32 flex items-center justify-center text-[#808191] italic bg-[#F4F4F4] rounded-2xl">
+                          [ Scanning for new activity signals... ]
                         </div>
-                      </div>
-                    ))}
-                    {(!registeredUsers || registeredUsers.length === 0) && (
-                      <div className="h-32 flex items-center justify-center text-[#808191] italic bg-[#F4F4F4] rounded-2xl">
-                        [ Scanning for new activity signals... ]
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </TabsContent>
