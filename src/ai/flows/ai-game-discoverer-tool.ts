@@ -64,7 +64,6 @@ Disliked Genres: {{#each dislikedGenres}}{{{this}}}{{^@last}}, {{/@last}}{{/each
 
 Based on this information, provide a list of at most 5 game recommendations. For each recommendation, include the game title, a brief reason for the recommendation, and its primary genre if known.
 Ensure the recommendations are fresh, engaging, and align with the user's demonstrated tastes while avoiding genres they dislike.
-
 `,
 });
 
@@ -75,20 +74,8 @@ const aiGameDiscovererFlow = ai.defineFlow(
     outputSchema: AIGameDiscovererToolOutputSchema,
   },
   async (input) => {
-    try {
-      const { output } = await prompt(input);
-      return output!;
-    } catch (error) {
-      console.error("AI discovery failed, returning fallback data.", error);
-      // Fallback data to prevent UI breakage if AI service is unavailable
-      return {
-        recommendedGames: [
-          { title: "NEON PROTOCOL", reason: "Based on your love for Cyberpunk 2077.", genre: "RPG" },
-          { title: "VOID CHASE", reason: "Matches your preference for high-octane action.", genre: "Racing" },
-          { title: "TITAN ECHO", reason: "Perfect for fans of deep strategy and mechs.", genre: "Strategy" }
-        ]
-      };
-    }
+    const { output } = await prompt(input);
+    return output!;
   }
 );
 
