@@ -9,17 +9,15 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { GameCard } from "./game-card";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-
-const FEATURED_GAMES = [
-  { title: "NEON PROTOCOL", rating: 4.9, genre: "RPG", image: "https://picsum.photos/seed/neon-1/600/800", hint: "cyberpunk city" },
-  { title: "AETHER STRIKE", rating: 4.8, genre: "ACTION", image: "https://picsum.photos/seed/aether/600/800", hint: "sci-fi combat" },
-  { title: "VOID CHASE", rating: 4.7, genre: "RACING", image: "https://picsum.photos/seed/void/600/800", hint: "futuristic car" },
-  { title: "TITAN ECHO", rating: 4.6, genre: "STRATEGY", image: "https://picsum.photos/seed/titan/600/800", hint: "giant mech" },
-  { title: "QUANTUM SOUL", rating: 4.9, genre: "ADVENTURE", image: "https://picsum.photos/seed/quantum/600/800", hint: "neon forest" },
-];
+import { useFirestore, useCollection } from "@/firebase";
+import { collection, query, orderBy, limit } from "firebase/firestore";
+import { Loader2 } from "lucide-react";
 
 export function FeaturedCarousel() {
+  const firestore = useFirestore();
+  const gamesRef = firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc"), limit(10)) : null;
+  const { data: games, loading } = useCollection(gamesRef);
+
   return (
     <section id="games" className="py-24 px-6 overflow-hidden bg-gradient-to-b from-transparent to-primary/5">
       <div className="max-w-7xl mx-auto">
@@ -29,31 +27,43 @@ export function FeaturedCarousel() {
           </h2>
         </div>
 
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-4">
-            {FEATURED_GAMES.map((game, i) => (
-              <CarouselItem key={i} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                <GameCard
-                  title={game.title}
-                  image={game.image}
-                  rating={game.rating}
-                  genre={game.genre}
-                  imageHint={game.hint}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="hidden lg:flex gap-2 justify-end mt-8 mr-4">
-            <CarouselPrevious className="static translate-y-0 border-white/10 hover:border-primary/50 glass h-12 w-12" />
-            <CarouselNext className="static translate-y-0 border-white/10 hover:border-primary/50 glass h-12 w-12" />
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
           </div>
-        </Carousel>
+        ) : games && games.length > 0 ? (
+          <Carousel
+            opts={{
+              align: "start",
+              loop: games.length > 4,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {games.map((game: any, i) => (
+                <CarouselItem key={game.id} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                  <GameCard
+                    title={game.title}
+                    image={game.coverUrl}
+                    rating={4.8} // Default rating for featured titles
+                    genre={game.category}
+                    imageHint="gaming wallpaper"
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className="hidden lg:flex gap-2 justify-end mt-8 mr-4">
+              <CarouselPrevious className="static translate-y-0 border-white/10 hover:border-primary/50 glass h-12 w-12" />
+              <CarouselNext className="static translate-y-0 border-white/10 hover:border-primary/50 glass h-12 w-12" />
+            </div>
+          </Carousel>
+        ) : (
+          <div className="text-center py-20 glass rounded-3xl border border-white/5">
+            <p className="text-muted-foreground font-headline font-bold uppercase tracking-widest">
+              The Nexus repository is currently empty.
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );
