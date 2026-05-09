@@ -4,7 +4,6 @@ import React from "react";
 import { Navbar } from "@/components/navbar";
 import { HeroScene } from "@/components/hero-scene";
 import { FeaturedCarousel } from "@/components/featured-carousel";
-import { AIRecommendations } from "@/components/ai-recommendations";
 import { TrendingNews } from "@/components/trending-news";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -120,8 +119,6 @@ export default function Home() {
           </div>
         </section>
 
-        <AIRecommendations />
-        
         {/* Dynamic Reviews Section Placeholder */}
         <section id="reviews" className="py-24 px-6 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
