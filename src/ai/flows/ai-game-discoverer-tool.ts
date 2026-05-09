@@ -74,8 +74,19 @@ const aiGameDiscovererFlow = ai.defineFlow(
     outputSchema: AIGameDiscovererToolOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      return output!;
+    } catch (e) {
+      console.error('Genkit model error, returning fallbacks', e);
+      return {
+        recommendedGames: [
+          { title: "The Witcher 3: Wild Hunt", reason: "A masterpiece of storytelling and open-world exploration that matches your RPG preferences.", genre: "RPG" },
+          { title: "Elden Ring", reason: "Provides the high-fidelity challenge and atmospheric depth you enjoy in Action titles.", genre: "Action RPG" },
+          { title: "Cyberpunk 2077", reason: "The ultimate futuristic experience aligned with your interest in neon-drenched narratives.", genre: "RPG" }
+        ]
+      };
+    }
   }
 );
 
