@@ -38,9 +38,9 @@
     },
     {
       "id": "auth-illust",
-      "description": "A child wearing a VR headset, immersed in glowing purple and blue neon lights",
-      "imageUrl": "https://picsum.photos/seed/neon-vr-child/800/800",
-      "imageHint": "neon child vr"
+      "description": "A cinematic futuristic character in a high-fidelity environment",
+      "imageUrl": "https://i.pinimg.com/736x/73/8a/98/738a98a8c1648d384b57f5ef5f3bd583.jpg",
+      "imageHint": "cyberpunk portrait"
     }
   ]
 }
