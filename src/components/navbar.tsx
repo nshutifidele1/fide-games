@@ -4,11 +4,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Gamepad2, Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
+import { Gamepad2, Menu, X, LogOut, User, LayoutDashboard, Search as SearchIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useFirestore, useCollection } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { collection, query, orderBy } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,21 +19,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
   { name: "Games", href: "/#games" },
   { name: "Reviews", href: "/#reviews" },
   { name: "News", href: "/#news" },
-  { name: "Admin", href: "/admin" },
 ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   const { user } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
+  const router = useRouter();
+
+  const gamesRef = firestore ? query(collection(firestore, "games"), orderBy("title", "asc")) : null;
+  const { data: games } = useCollection(gamesRef);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,6 +60,19 @@ export function Navbar() {
 
   const handleLogout = async () => {
     if (auth) await signOut(auth);
+  };
+
+  const filteredGames = searchQuery.trim() === "" 
+    ? [] 
+    : games?.filter(game => 
+        game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        game.category.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 5);
+
+  const handleGameClick = (gameId: string) => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    router.push(`/games/${gameId}`);
   };
 
   return (
@@ -77,8 +107,63 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Auth / User Buttons */}
+        {/* Search & Auth */}
         <div className="hidden lg:flex items-center gap-4">
+          <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-foreground/70 hover:text-primary transition-all">
+                <SearchIcon className="w-5 h-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] glass border-primary/20 p-0 overflow-hidden">
+              <DialogHeader className="p-6 pb-0">
+                <DialogTitle className="font-headline text-2xl font-bold uppercase tracking-widest text-primary mb-4">Neural Search Nexus</DialogTitle>
+                <div className="relative">
+                  <Input 
+                    placeholder="Scan repository for titles or genres..." 
+                    className="h-14 bg-white/5 border-primary/20 rounded-2xl px-12 focus-visible:ring-primary text-white font-bold"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                  />
+                  <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                </div>
+              </DialogHeader>
+              <div className="max-h-[400px] overflow-y-auto p-6 space-y-4">
+                {searchQuery.trim() === "" ? (
+                  <div className="text-center py-10 opacity-50">
+                    <p className="font-headline text-xs uppercase tracking-[0.3em]">Awaiting input parameters...</p>
+                  </div>
+                ) : filteredGames && filteredGames.length > 0 ? (
+                  filteredGames.map((game: any) => (
+                    <button 
+                      key={game.id}
+                      onClick={() => handleGameClick(game.id)}
+                      className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-primary/10 transition-all border border-white/5 hover:border-primary/30 text-left group"
+                    >
+                      <div className="w-16 h-16 relative rounded-xl overflow-hidden shrink-0 border border-white/10">
+                        <img src={game.coverUrl} alt={game.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-lg group-hover:text-primary transition-colors">{game.title}</h4>
+                        <Badge variant="outline" className="mt-1 border-primary/30 text-primary/80 text-[10px]">{game.category}</Badge>
+                      </div>
+                      <Gamepad2 className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center py-10">
+                    <p className="text-muted-foreground italic">No matching titles found in the Nexus registry.</p>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 bg-primary/5 border-t border-primary/10 flex justify-between items-center px-6">
+                <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Repository Status: Optimal</span>
+                <Link href="/search" onClick={() => setIsSearchOpen(false)} className="text-[10px] font-bold text-white hover:text-primary transition-colors underline uppercase tracking-widest">Advanced Scan</Link>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -104,10 +189,6 @@ export function Navbar() {
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     <span>Admin Panel</span>
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="focus:bg-primary/20 cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile Nexus</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-primary/10" />
                 <DropdownMenuItem className="focus:bg-destructive/20 cursor-pointer text-destructive" onClick={handleLogout}>
