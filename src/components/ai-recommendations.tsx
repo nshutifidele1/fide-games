@@ -3,32 +3,38 @@
 import React, { useState, useEffect } from "react";
 import { aiGameDiscovererTool, type AIGameDiscovererToolOutput } from "@/ai/flows/ai-game-discoverer-tool";
 import { GameCard } from "./game-card";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 export function AIRecommendations() {
   const [recommendations, setRecommendations] = useState<AIGameDiscovererToolOutput | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  async function fetchRecs() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await aiGameDiscovererTool({
+        browsingHistory: ["Cyberpunk 2077", "Elden Ring"],
+        playedGames: [
+          { title: "The Witcher 3", rating: 5, playtimeHours: 120 },
+          { title: "DOOM Eternal", rating: 4, playtimeHours: 40 }
+        ],
+        preferredGenres: ["RPG", "Action", "Cyberpunk"],
+        dislikedGenres: ["Sport"]
+      });
+      setRecommendations(res);
+    } catch (e: any) {
+      console.error("AI recommendation failed", e);
+      setError(e.message || "Failed to fetch neural recommendations.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function fetchRecs() {
-      try {
-        const res = await aiGameDiscovererTool({
-          browsingHistory: ["Cyberpunk 2077", "Elden Ring"],
-          playedGames: [
-            { title: "The Witcher 3", rating: 5, playtimeHours: 120 },
-            { title: "DOOM Eternal", rating: 4, playtimeHours: 40 }
-          ],
-          preferredGenres: ["RPG", "Action", "Cyberpunk"],
-          dislikedGenres: ["Sport"]
-        });
-        setRecommendations(res);
-      } catch (e) {
-        console.error("AI recommendation failed", e);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchRecs();
   }, []);
 
@@ -38,6 +44,23 @@ export function AIRecommendations() {
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
         <p className="font-headline text-primary animate-pulse">Consulting the Oracle...</p>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-20 px-6 max-w-7xl mx-auto text-center">
+        <div className="glass p-12 rounded-3xl border border-destructive/20 max-w-2xl mx-auto">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-6" />
+          <h2 className="font-headline text-2xl font-bold mb-4">Neural Link Interrupted</h2>
+          <p className="text-muted-foreground mb-8">
+            We encountered a protocol error while reaching the AI Oracle. Please ensure your environment credentials (GEMINI_API_KEY) are valid.
+          </p>
+          <Button onClick={fetchRecs} variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
+            RETRY CONNECTION
+          </Button>
+        </div>
+      </section>
     );
   }
 

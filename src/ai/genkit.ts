@@ -5,12 +5,11 @@ const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY ||
 
 /**
  * Initialize Genkit with the Google AI plugin.
- * We use a placeholder key if none is found to prevent startup crashes in environments
- * where the API key is not yet configured.
+ * We ensure the API key is passed if available to avoid invalid request errors.
  */
 export const ai = genkit({
   plugins: [
-    googleAI({ apiKey: apiKey || 'MISSING_API_KEY' }),
+    googleAI({ apiKey }),
   ],
-  model: 'googleai/gemini-2.5-flash',
+  model: 'googleai/gemini-1.5-flash',
 });
