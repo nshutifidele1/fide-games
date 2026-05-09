@@ -1,9 +1,10 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Gamepad2, Menu, X, LogOut, User } from "lucide-react";
+import { Gamepad2, Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -22,6 +23,7 @@ const NAV_LINKS = [
   { name: "Games", href: "/#games" },
   { name: "Reviews", href: "/#reviews" },
   { name: "News", href: "/#news" },
+  { name: "Admin", href: "/admin" },
 ];
 
 export function Navbar() {
@@ -97,10 +99,17 @@ export function Navbar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-primary/10" />
+                <DropdownMenuItem asChild>
+                  <Link href="/admin" className="flex items-center cursor-pointer">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Admin Panel</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem className="focus:bg-primary/20 cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile Nexus</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-primary/10" />
                 <DropdownMenuItem className="focus:bg-destructive/20 cursor-pointer text-destructive" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Disconnect</span>
@@ -148,9 +157,16 @@ export function Navbar() {
             ))}
             <div className="w-full h-px bg-primary/20" />
             {user ? (
-              <Button variant="ghost" className="w-full text-xl font-headline font-bold text-destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
-                Disconnect
-              </Button>
+              <>
+                <Link href="/admin" className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full text-xl font-headline font-bold">
+                    Admin Panel
+                  </Button>
+                </Link>
+                <Button variant="ghost" className="w-full text-xl font-headline font-bold text-destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
+                  Disconnect
+                </Button>
+              </>
             ) : (
               <>
                 <Link href="/auth" className="w-full" onClick={() => setMobileMenuOpen(false)}>
