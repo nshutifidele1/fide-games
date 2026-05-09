@@ -16,9 +16,10 @@ import {
   Layers,
   ShieldAlert,
   Loader2,
-  ShieldCheck,
   Eye,
-  Lock
+  Lock,
+  Video,
+  FileArchive
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,18 +112,7 @@ export default function AdminDashboard() {
   }
 
   if (!user || user.email !== "nshutifidele1@gmail.com") {
-    return (
-      <div className="min-h-screen bg-[#111315] flex items-center justify-center flex-col gap-8 p-6 text-center">
-        <div className="w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center">
-          <ShieldAlert className="w-12 h-12 text-destructive" />
-        </div>
-        <div className="max-w-md">
-          <h1 className="text-4xl font-headline font-bold text-white mb-4">ACCESS REJECTED</h1>
-          <p className="text-[#808191] font-body mb-8">This terminal is reserved for Super Administrator personnel. Unauthorized access attempts are logged.</p>
-          <Button onClick={() => router.push("/auth")} className="bg-[#4D86FF] h-14 px-10 rounded-xl font-bold">Return to Identity Gateway</Button>
-        </div>
-      </div>
-    );
+    return null; // Handled by useEffect redirect
   }
 
   const handleAddGame = () => {
@@ -381,7 +371,7 @@ export default function AdminDashboard() {
                       <DialogHeader className="mb-6">
                         <DialogTitle className="font-headline text-2xl font-bold">New Mission Payload</DialogTitle>
                         <DialogDescription className="text-[#808191] font-bold">
-                          Define the parameters for the new game deployment.
+                          Define the parameters for the new game deployment including media assets and encryption.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -422,7 +412,7 @@ export default function AdminDashboard() {
                           />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="trailer" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Trailer URL (YouTube/Direct)</Label>
+                          <Label htmlFor="trailer" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">YouTube Video Trailer URL</Label>
                           <Input 
                             id="trailer" 
                             className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
@@ -432,7 +422,7 @@ export default function AdminDashboard() {
                           />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="download" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Asset Download URL</Label>
+                          <Label htmlFor="download" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">ZIP Asset Download URL</Label>
                           <Input 
                             id="download" 
                             className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
@@ -442,7 +432,7 @@ export default function AdminDashboard() {
                           />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">ZIP Password (Optional)</Label>
+                          <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">ZIP Decryption Key (Password)</Label>
                           <Input 
                             id="password" 
                             className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
@@ -469,7 +459,7 @@ export default function AdminDashboard() {
                         <TableRow className="hover:bg-transparent">
                           <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Title</TableHead>
                           <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Category</TableHead>
-                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Assets</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Asset Pulse</TableHead>
                           <TableHead className="font-bold py-6 px-8 text-center text-[#808191] uppercase text-[11px] tracking-widest">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -489,8 +479,9 @@ export default function AdminDashboard() {
                             </TableCell>
                             <TableCell className="py-6 px-8">
                               <div className="flex items-center gap-4">
-                                {game.trailerUrl && <Eye className="w-4 h-4 text-[#4D86FF]" title="Has Trailer" />}
-                                {game.zipPassword && <Lock className="w-4 h-4 text-[#FF9F1C]" title="Has Password" />}
+                                <Video className={`w-4 h-4 ${game.trailerUrl ? 'text-[#4D86FF]' : 'text-[#808191] opacity-20'}`} title={game.trailerUrl ? "Trailer Active" : "No Trailer"} />
+                                <FileArchive className={`w-4 h-4 ${game.downloadUrl ? 'text-[#38CB89]' : 'text-[#808191] opacity-20'}`} title={game.downloadUrl ? "Asset Ready" : "Missing Payload"} />
+                                <Lock className={`w-4 h-4 ${game.zipPassword ? 'text-[#FF9F1C]' : 'text-[#808191] opacity-20'}`} title={game.zipPassword ? "Encrypted" : "No Password"} />
                               </div>
                             </TableCell>
                             <TableCell className="py-6 px-8">
