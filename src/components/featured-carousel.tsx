@@ -47,6 +47,7 @@ export function FeaturedCarousel() {
                     image={game.coverUrl}
                     rating={4.8} // Default rating for featured titles
                     genre={game.category}
+                    downloadUrl={game.downloadUrl}
                     imageHint="gaming wallpaper"
                   />
                 </CarouselItem>

@@ -13,9 +13,16 @@ interface GameCardProps {
   rating: number;
   genre: string;
   imageHint: string;
+  downloadUrl?: string;
 }
 
-export function GameCard({ title, image, rating, genre, imageHint }: GameCardProps) {
+export function GameCard({ title, image, rating, genre, imageHint, downloadUrl }: GameCardProps) {
+  const handleDownload = () => {
+    if (downloadUrl) {
+      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <motion.div
       whileHover={{ scale: 1.02, rotateY: 5, rotateX: 5 }}
@@ -55,7 +62,11 @@ export function GameCard({ title, image, rating, genre, imageHint }: GameCardPro
         </h3>
 
         <div className="flex items-center gap-3 mt-2">
-          <Button size="sm" className="bg-primary neon-border hover:neon-blue-glow font-headline font-bold flex-1">
+          <Button 
+            size="sm" 
+            onClick={handleDownload}
+            className="bg-primary neon-border hover:neon-blue-glow font-headline font-bold flex-1"
+          >
             <Download className="w-4 h-4 mr-2" />
             DOWNLOAD
           </Button>
