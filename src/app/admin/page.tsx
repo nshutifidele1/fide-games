@@ -4,18 +4,14 @@ import React, { useState } from "react";
 import { 
   Search, 
   Bell, 
-  Download, 
   Plus, 
   Gamepad, 
   Settings, 
   Users, 
   LayoutDashboard,
-  ChevronRight,
   Upload,
-  Database,
   Trash2,
   LogOut,
-  Filter,
   Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -157,7 +153,7 @@ export default function AdminDashboard() {
               { id: "users", icon: Users, label: "User Registry" },
               { id: "games", icon: Gamepad, label: "Games Repository" },
               { id: "categories", icon: Layers, label: "Categories" },
-              { id: "settings", icon: Settings, label: "Nexus Settings" },
+              { id: "settings", icon: Settings, label: "Fide Games Settings" },
             ].map((item) => (
               <button 
                 key={item.id}
