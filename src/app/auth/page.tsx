@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,6 +24,7 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -30,7 +32,7 @@ export default function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!auth) return;
+    if (!auth || !firestore) return;
     
     setIsLoading(true);
     try {
@@ -46,7 +48,19 @@ export default function AuthPage() {
         }
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: username });
+        const user = userCredential.user;
+        
+        await updateProfile(user, { displayName: username });
+        
+        // Create user profile in Firestore
+        setDoc(doc(firestore, "users", user.uid), {
+          displayName: username || "New Agent",
+          email: user.email,
+          role: "user",
+          createdAt: serverTimestamp(),
+          status: "online",
+        }, { merge: true });
+
         toast({ title: "Registration Complete", description: "Your digital signature has been recorded." });
         router.push("/");
       }

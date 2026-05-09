@@ -15,7 +15,8 @@ import {
   LogOut,
   Layers,
   ShieldAlert,
-  Loader2
+  Loader2,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,10 +49,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useFirestore, useCollection, useAuth, useUser } from "@/firebase";
-import { collection, addDoc, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -74,11 +76,14 @@ export default function AdminDashboard() {
   // New Category Form State
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  const gamesRef = firestore ? collection(firestore, "games") : null;
+  const gamesRef = firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc")) : null;
   const { data: games, loading: gamesLoading } = useCollection(gamesRef);
 
-  const categoriesRef = firestore ? collection(firestore, "categories") : null;
+  const categoriesRef = firestore ? query(collection(firestore, "categories"), orderBy("name", "asc")) : null;
   const { data: categories, loading: categoriesLoading } = useCollection(categoriesRef);
+
+  const usersRef = firestore ? query(collection(firestore, "users"), orderBy("createdAt", "desc")) : null;
+  const { data: registeredUsers, loading: usersLoading } = useCollection(usersRef);
 
   // Authorization check
   useEffect(() => {
@@ -88,7 +93,7 @@ export default function AdminDashboard() {
         description: "Your credentials do not have administrative clearance for this terminal.",
         variant: "destructive"
       });
-      router.push("/");
+      router.push("/auth");
     }
   }, [user, userLoading, router, toast]);
 
@@ -130,8 +135,6 @@ export default function AdminDashboard() {
       toast({ title: "Success", description: "New title deployed to the Nexus repository." });
       setNewGame({ title: "", coverUrl: "", downloadUrl: "", category: "" });
       setIsAddingGame(false);
-    }).catch((e: any) => {
-      toast({ title: "Deployment Error", description: e.message, variant: "destructive" });
     });
   };
 
@@ -139,8 +142,6 @@ export default function AdminDashboard() {
     if (!firestore) return;
     deleteDoc(doc(firestore, "games", gameId)).then(() => {
       toast({ title: "Deleted", description: "Title purged from the repository." });
-    }).catch((e: any) => {
-      toast({ title: "Purge Failed", description: e.message, variant: "destructive" });
     });
   };
 
@@ -154,8 +155,6 @@ export default function AdminDashboard() {
       toast({ title: "Success", description: "New classification category established." });
       setNewCategoryName("");
       setIsAddingCategory(false);
-    }).catch((e: any) => {
-      toast({ title: "Registry Failed", description: e.message, variant: "destructive" });
     });
   };
 
@@ -163,8 +162,13 @@ export default function AdminDashboard() {
     if (!firestore) return;
     deleteDoc(doc(firestore, "categories", categoryId)).then(() => {
       toast({ title: "Deleted", description: "Category decommissioned." });
-    }).catch((e: any) => {
-      toast({ title: "Decommission Failed", description: e.message, variant: "destructive" });
+    });
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    if (!firestore) return;
+    deleteDoc(doc(firestore, "users", userId)).then(() => {
+      toast({ title: "Registry Purged", description: "Agent credentials removed from database." });
     });
   };
 
@@ -261,8 +265,8 @@ export default function AdminDashboard() {
                     </div>
                     <p className="text-sm font-bold text-[#808191] mb-2">Total Verified Agents</p>
                     <div className="flex items-end gap-3">
-                      <h3 className="text-4xl font-headline font-bold">142,932</h3>
-                      <span className="text-green-500 font-bold text-sm mb-1">+12.5%</span>
+                      <h3 className="text-4xl font-headline font-bold">{registeredUsers?.length || 0}</h3>
+                      <span className="text-green-500 font-bold text-sm mb-1">Registered</span>
                     </div>
                   </div>
                   <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EFEFEF]">
@@ -298,45 +302,61 @@ export default function AdminDashboard() {
               <TabsContent value="users" className="space-y-8">
                 <div className="flex justify-between items-center">
                   <h1 className="text-3xl font-headline font-bold">User Registry</h1>
-                  <Button className="bg-[#4D86FF] hover:bg-[#3B71E0] rounded-xl h-12 px-6 gap-2 font-bold">
-                    <Plus className="w-4 h-4" /> Register New Agent
-                  </Button>
                 </div>
                 <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] overflow-hidden">
                   <Table>
                       <TableHeader className="bg-white">
                         <TableRow className="hover:bg-transparent">
                           <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Agent Identity</TableHead>
-                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Status</TableHead>
-                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Neural Tier</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Role</TableHead>
                           <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Joined</TableHead>
                           <TableHead className="font-bold py-6 px-8 text-center text-[#808191] uppercase text-[11px] tracking-widest">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {[1, 2, 3, 4].map((i) => (
-                          <TableRow key={i} className="hover:bg-[#F4F4F4]/50 border-b border-[#F4F4F4]">
+                        {usersLoading ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="py-20 text-center text-[#808191] italic animate-pulse">Accessing Secure Registry...</TableCell>
+                          </TableRow>
+                        ) : registeredUsers?.map((regUser: any) => (
+                          <TableRow key={regUser.id} className="hover:bg-[#F4F4F4]/50 border-b border-[#F4F4F4]">
                             <TableCell className="py-6 px-8">
                               <div className="flex items-center gap-4">
                                 <Avatar className="w-10 h-10 rounded-xl">
-                                  <AvatarImage src={`https://picsum.photos/seed/user-${i}/100/100`} />
+                                  <AvatarImage src={`https://picsum.photos/seed/${regUser.id}/100/100`} />
+                                  <AvatarFallback>{regUser.displayName?.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <p className="font-bold text-sm">Agent_{i+100}</p>
-                                  <p className="text-xs text-[#808191]">agent{i}@fide.com</p>
+                                  <p className="font-bold text-sm">{regUser.displayName}</p>
+                                  <p className="text-xs text-[#808191]">{regUser.email}</p>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell className="py-6 px-8">
-                              <Badge className="bg-[#38CB89]/10 text-[#38CB89] hover:bg-[#38CB89]/20 border-none shadow-none rounded-lg px-3 py-1 font-bold">Online</Badge>
+                              <Badge className={regUser.role === 'admin' ? "bg-[#4D86FF]/10 text-[#4D86FF] border-none shadow-none rounded-lg px-3 py-1 font-bold" : "bg-muted text-muted-foreground border-none shadow-none rounded-lg px-3 py-1 font-bold"}>
+                                {regUser.role === 'admin' ? 'Super Admin' : 'Agent'}
+                              </Badge>
                             </TableCell>
-                            <TableCell className="py-6 px-8 font-bold text-sm">Level {i * 5}</TableCell>
-                            <TableCell className="py-6 px-8 text-[#808191] text-sm">Jan {i+10}, 2025</TableCell>
+                            <TableCell className="py-6 px-8 text-[#808191] text-sm">
+                              {regUser.createdAt?.toDate ? format(regUser.createdAt.toDate(), 'MMM dd, yyyy') : 'Recently'}
+                            </TableCell>
                             <TableCell className="py-6 px-8 text-center">
-                              <Button variant="ghost" size="sm" className="text-[#4D86FF] font-bold hover:bg-[#4D86FF]/10 rounded-lg">Manage</Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleDeleteUser(regUser.id)}
+                                className="text-[#FF6A55] font-bold hover:bg-[#FF6A55]/10 rounded-lg px-3"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}
+                        {(!registeredUsers || registeredUsers.length === 0) && !usersLoading && (
+                          <TableRow>
+                            <TableCell colSpan={4} className="py-20 text-center text-[#808191] font-bold">Registry currently empty. No active agents found.</TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                    </Table>
                 </div>
