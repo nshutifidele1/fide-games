@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -12,7 +11,7 @@ import { motion } from "framer-motion";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const illust = PlaceHolderImages.find((img) => img.id === "auth-illust");
 
   return (
