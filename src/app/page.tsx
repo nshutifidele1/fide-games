@@ -8,10 +8,11 @@ import { FeaturedCarousel } from "@/components/featured-carousel";
 import { TrendingNews } from "@/components/trending-news";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Trophy, Users, Zap, PlayCircle, ChevronRight, X, Film, Loader2 } from "lucide-react";
+import { ShieldCheck, Trophy, Users, Zap, PlayCircle, ChevronRight, Search as SearchIcon, Film, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFirestore, useCollection } from "@/firebase";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +22,13 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 
 export default function Home() {
   const [activeTrailer, setActiveTrailer] = useState<any>(null);
+  const [homeSearchQuery, setHomeSearchQuery] = useState("");
   const firestore = useFirestore();
+  const router = useRouter();
   
   const gamesRef = firestore ? collection(firestore, "games") : null;
   const { data: allGames, loading: gamesLoading } = useCollection(gamesRef);
@@ -36,6 +40,15 @@ export default function Home() {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+  };
+
+  const handleHomeSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (homeSearchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(homeSearchQuery)}`);
+    } else {
+      router.push('/search');
+    }
   };
 
   return (
@@ -66,7 +79,7 @@ export default function Home() {
               Step into FIDE GAMES. A high-fidelity gaming sanctuary designed for the next generation of digital pioneers.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Button size="lg" onClick={() => document.getElementById('games')?.scrollIntoView({ behavior: 'smooth' })} className="bg-primary hover:bg-primary/90 neon-border h-14 px-10 rounded-full font-headline font-bold text-lg group">
+              <Button size="lg" onClick={() => document.getElementById('search-nexus')?.scrollIntoView({ behavior: 'smooth' })} className="bg-primary hover:bg-primary/90 neon-border h-14 px-10 rounded-full font-headline font-bold text-lg group">
                 ENTER THE NEXUS
                 <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -180,6 +193,39 @@ export default function Home() {
 
       {/* Main Content Sections */}
       <main className="relative z-10 bg-background/50 backdrop-blur-3xl">
+        
+        {/* Homepage Search Nexus */}
+        <section id="search-nexus" className="py-24 px-6 max-w-5xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-headline font-bold uppercase tracking-tight mb-4">
+              SCAN THE <span className="text-primary neon-text">NEXUS</span>
+            </h2>
+            <p className="text-muted-foreground text-lg">Locate your next mission within our secure game repository.</p>
+          </motion.div>
+
+          <form onSubmit={handleHomeSearch} className="relative group max-w-3xl mx-auto">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+            <div className="relative glass rounded-[2rem] p-4 flex items-center gap-4 border-white/10">
+              <div className="pl-4">
+                <SearchIcon className="w-6 h-6 text-primary" />
+              </div>
+              <Input 
+                value={homeSearchQuery}
+                onChange={(e) => setHomeSearchQuery(e.target.value)}
+                placeholder="Title, Genre, or Neural ID..." 
+                className="flex-1 bg-transparent border-none text-xl font-headline font-bold h-14 focus-visible:ring-0 placeholder:text-white/20"
+              />
+              <Button type="submit" size="lg" className="bg-primary hover:bg-primary/90 rounded-2xl h-14 px-8 font-headline font-bold">
+                INITIATE SCAN
+              </Button>
+            </div>
+          </form>
+        </section>
+
         <FeaturedCarousel />
         
         {/* Interactive Stats Banner */}
