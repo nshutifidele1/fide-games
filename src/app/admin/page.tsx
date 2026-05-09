@@ -21,7 +21,10 @@ import {
   Video,
   FileArchive,
   Newspaper,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Activity,
+  UserPlus,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +58,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useFirestore, useCollection, useAuth, useUser } from "@/firebase";
-import { collection, addDoc, serverTimestamp, deleteDoc, doc, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, deleteDoc, doc, query, orderBy, limit } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -229,6 +232,7 @@ export default function AdminDashboard() {
           <nav className="space-y-2">
             {[
               { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+              { id: "activity", icon: Activity, label: "Activity Feed" },
               { id: "users", icon: Users, label: "User Registry" },
               { id: "games", icon: Gamepad, label: "Games Repository" },
               { id: "categories", icon: Layers, label: "Categories" },
@@ -270,9 +274,11 @@ export default function AdminDashboard() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#808191]" />
               <Input placeholder="Registry Scan..." className="pl-11 w-80 h-12 bg-[#F4F4F4] border-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#4D86FF] text-red-600 font-bold" />
             </div>
-            <button className="relative p-3 rounded-xl bg-[#F4F4F4] text-[#1A1D1F] hover:bg-[#EFEFEF] transition-colors">
+            <button className="relative p-3 rounded-xl bg-[#F4F4F4] text-[#1A1D1F] hover:bg-[#EFEFEF] transition-colors" onClick={() => setActiveTab("activity")}>
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-[#FF6A55] rounded-full border-2 border-white" />
+              {registeredUsers && registeredUsers.length > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-[#FF6A55] rounded-full border-2 border-white animate-pulse" />
+              )}
             </button>
             <div className="flex items-center gap-4 pl-6 border-l border-[#EFEFEF]">
               <div className="text-right">
@@ -334,9 +340,64 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
-                  <h3 className="text-xl font-bold mb-6">Platform Activity Matrix</h3>
-                  <div className="h-64 flex items-center justify-center text-[#808191] italic bg-[#F4F4F4] rounded-2xl">
-                    [ Activity Analytics Layer - Initializing... ]
+                  <h3 className="text-xl font-bold mb-6">Recent Nexus Activity</h3>
+                  <div className="space-y-4">
+                    {registeredUsers?.slice(0, 5).map((regUser: any) => (
+                      <div key={regUser.id} className="flex items-center justify-between p-4 rounded-2xl bg-[#F4F4F4]/50 border border-transparent hover:border-[#4D86FF]/20 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-[#4D86FF]/10 rounded-xl flex items-center justify-center text-[#4D86FF]">
+                            <UserPlus className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold">New Agent Established Link: <span className="text-[#4D86FF]">{regUser.displayName}</span></p>
+                            <p className="text-[10px] text-[#808191] uppercase font-bold">{regUser.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-[#808191]">
+                          <Clock className="w-3 h-3" />
+                          <span className="text-[10px] font-bold">
+                            {regUser.createdAt?.toDate ? format(regUser.createdAt.toDate(), 'HH:mm') : 'Recent'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {(!registeredUsers || registeredUsers.length === 0) && (
+                      <div className="h-32 flex items-center justify-center text-[#808191] italic bg-[#F4F4F4] rounded-2xl">
+                        [ Scanning for new activity signals... ]
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="activity" className="space-y-8">
+                <h1 className="text-3xl font-headline font-bold">Protocol Activity Feed</h1>
+                <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
+                  <div className="space-y-6">
+                    {registeredUsers?.map((regUser: any) => (
+                      <div key={regUser.id} className="flex items-center gap-4 p-6 rounded-2xl bg-[#F4F4F4]/50 border border-transparent hover:border-[#4D86FF]/20 transition-all">
+                        <div className="w-14 h-14 bg-[#4D86FF]/10 rounded-2xl flex items-center justify-center shrink-0">
+                          <UserPlus className="w-7 h-7 text-[#4D86FF]" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                             <h4 className="font-bold text-lg">System Registration Success</h4>
+                             <Badge className="bg-green-500 text-white border-none text-[9px] h-5">VERIFIED</Badge>
+                          </div>
+                          <p className="text-sm text-[#808191]">
+                            New neural link established by <span className="font-bold text-[#1A1D1F]">{regUser.displayName}</span> using protocol address <span className="text-[#4D86FF] font-medium">{regUser.email}</span>.
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[11px] text-[#808191] font-bold uppercase tracking-widest mb-1">
+                            {regUser.createdAt?.toDate ? format(regUser.createdAt.toDate(), 'MMM dd, yyyy') : 'Recent'}
+                          </p>
+                          <p className="text-sm font-headline font-bold text-[#4D86FF]">
+                            {regUser.createdAt?.toDate ? format(regUser.createdAt.toDate(), 'HH:mm:ss') : '--:--'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </TabsContent>
