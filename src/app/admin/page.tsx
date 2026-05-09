@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -149,7 +148,7 @@ export default function AdminDashboard() {
             <div className="w-10 h-10 bg-[#4D86FF] rounded-xl flex items-center justify-center">
               <Gamepad className="w-6 h-6 text-white" />
             </div>
-            <span className="font-headline font-bold text-xl tracking-tight text-white uppercase italic">Nexus Admin</span>
+            <span className="font-headline font-bold text-xl tracking-tight text-white uppercase italic">Fide Games</span>
           </div>
 
           <nav className="space-y-2">
