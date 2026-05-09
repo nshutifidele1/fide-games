@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -43,11 +44,11 @@ export function FeaturedCarousel() {
               {games.map((game: any, i) => (
                 <CarouselItem key={game.id} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
                   <GameCard
+                    id={game.id}
                     title={game.title}
                     image={game.coverUrl}
                     rating={4.8} // Default rating for featured titles
                     genre={game.category}
-                    downloadUrl={game.downloadUrl}
                     imageHint="gaming wallpaper"
                   />
                 </CarouselItem>

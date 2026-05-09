@@ -1,25 +1,29 @@
+
 "use client";
 
 import React from "react";
 import Image from "next/image";
-import { Star, Download } from "lucide-react";
+import { Star, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface GameCardProps {
+  id?: string;
   title: string;
   image: string;
   rating: number;
   genre: string;
   imageHint: string;
-  downloadUrl?: string;
 }
 
-export function GameCard({ title, image, rating, genre, imageHint, downloadUrl }: GameCardProps) {
-  const handleDownload = () => {
-    if (downloadUrl) {
-      window.open(downloadUrl, "_blank", "noopener,noreferrer");
+export function GameCard({ id, title, image, rating, genre, imageHint }: GameCardProps) {
+  const router = useRouter();
+
+  const handleViewGame = () => {
+    if (id) {
+      router.push(`/games/${id}`);
     }
   };
 
@@ -64,11 +68,11 @@ export function GameCard({ title, image, rating, genre, imageHint, downloadUrl }
         <div className="flex items-center gap-3 mt-2">
           <Button 
             size="sm" 
-            onClick={handleDownload}
+            onClick={handleViewGame}
             className="bg-primary neon-border hover:neon-blue-glow font-headline font-bold flex-1"
           >
-            <Download className="w-4 h-4 mr-2" />
-            DOWNLOAD
+            <Eye className="w-4 h-4 mr-2" />
+            VIEW GAME
           </Button>
           <Button size="icon" variant="outline" className="border-white/10 glass hover:border-primary/50">
             <Star className="w-4 h-4" />

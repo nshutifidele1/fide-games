@@ -9,6 +9,8 @@
         "title": { "type": "string" },
         "coverUrl": { "type": "string", "format": "uri" },
         "downloadUrl": { "type": "string", "format": "uri" },
+        "trailerUrl": { "type": "string", "format": "uri" },
+        "zipPassword": { "type": "string" },
         "category": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },

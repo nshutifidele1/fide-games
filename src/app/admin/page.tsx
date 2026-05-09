@@ -16,7 +16,9 @@ import {
   Layers,
   ShieldAlert,
   Loader2,
-  ShieldCheck
+  ShieldCheck,
+  Eye,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,6 +72,8 @@ export default function AdminDashboard() {
     title: "",
     coverUrl: "",
     downloadUrl: "",
+    trailerUrl: "",
+    zipPassword: "",
     category: ""
   });
 
@@ -124,7 +128,7 @@ export default function AdminDashboard() {
   const handleAddGame = () => {
     if (!firestore) return;
     if (!newGame.title || !newGame.coverUrl || !newGame.downloadUrl || !newGame.category) {
-      toast({ title: "Validation Error", description: "All payload parameters must be defined.", variant: "destructive" });
+      toast({ title: "Validation Error", description: "All mandatory payload parameters must be defined.", variant: "destructive" });
       return;
     }
 
@@ -133,7 +137,7 @@ export default function AdminDashboard() {
       createdAt: serverTimestamp()
     }).then(() => {
       toast({ title: "Success", description: "New title deployed to the Nexus repository." });
-      setNewGame({ title: "", coverUrl: "", downloadUrl: "", category: "" });
+      setNewGame({ title: "", coverUrl: "", downloadUrl: "", trailerUrl: "", zipPassword: "", category: "" });
       setIsAddingGame(false);
     });
   };
@@ -373,14 +377,14 @@ export default function AdminDashboard() {
                         Deploy New Title
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px] rounded-3xl p-8 border-none bg-white">
+                    <DialogContent className="sm:max-w-[600px] rounded-3xl p-8 border-none bg-white max-h-[90vh] overflow-y-auto">
                       <DialogHeader className="mb-6">
                         <DialogTitle className="font-headline text-2xl font-bold">New Mission Payload</DialogTitle>
                         <DialogDescription className="text-[#808191] font-bold">
                           Define the parameters for the new game deployment.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="title" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Game Title</Label>
                           <Input 
@@ -389,26 +393,6 @@ export default function AdminDashboard() {
                             placeholder="e.g. Neon Protocol" 
                             value={newGame.title}
                             onChange={(e) => setNewGame({...newGame, title: e.target.value})}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="cover" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Cover Illustration URL</Label>
-                          <Input 
-                            id="cover" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
-                            placeholder="https://images.unsplash.com/..." 
-                            value={newGame.coverUrl}
-                            onChange={(e) => setNewGame({...newGame, coverUrl: e.target.value})}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="download" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Asset Download URL</Label>
-                          <Input 
-                            id="download" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
-                            placeholder="https://nexus-storage.fide.com/..." 
-                            value={newGame.downloadUrl}
-                            onChange={(e) => setNewGame({...newGame, downloadUrl: e.target.value})}
                           />
                         </div>
                         <div className="space-y-2">
@@ -422,10 +406,50 @@ export default function AdminDashboard() {
                                 <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                               ))}
                               {(!categories || categories.length === 0) && (
-                                <p className="p-2 text-xs text-[#808191] italic">No categories available. Please add them in the Categories tab.</p>
+                                <p className="p-2 text-xs text-[#808191] italic">No categories available.</p>
                               )}
                             </SelectContent>
                           </Select>
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="cover" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Cover Illustration URL</Label>
+                          <Input 
+                            id="cover" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            placeholder="https://images.unsplash.com/..." 
+                            value={newGame.coverUrl}
+                            onChange={(e) => setNewGame({...newGame, coverUrl: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="trailer" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Trailer URL (YouTube/Direct)</Label>
+                          <Input 
+                            id="trailer" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            placeholder="https://youtube.com/watch?v=..." 
+                            value={newGame.trailerUrl}
+                            onChange={(e) => setNewGame({...newGame, trailerUrl: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="download" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Asset Download URL</Label>
+                          <Input 
+                            id="download" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            placeholder="https://nexus-storage.fide.com/..." 
+                            value={newGame.downloadUrl}
+                            onChange={(e) => setNewGame({...newGame, downloadUrl: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">ZIP Password (Optional)</Label>
+                          <Input 
+                            id="password" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            placeholder="Leave empty for no password" 
+                            value={newGame.zipPassword}
+                            onChange={(e) => setNewGame({...newGame, zipPassword: e.target.value})}
+                          />
                         </div>
                       </div>
                       <DialogFooter className="mt-10 gap-3">
@@ -445,7 +469,7 @@ export default function AdminDashboard() {
                         <TableRow className="hover:bg-transparent">
                           <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Title</TableHead>
                           <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Category</TableHead>
-                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Deployment</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Assets</TableHead>
                           <TableHead className="font-bold py-6 px-8 text-center text-[#808191] uppercase text-[11px] tracking-widest">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -464,13 +488,16 @@ export default function AdminDashboard() {
                               <Badge variant="outline" className="rounded-lg px-3 py-1 border-[#4D86FF]/20 text-[#4D86FF] bg-[#4D86FF]/5 font-bold">{game.category}</Badge>
                             </TableCell>
                             <TableCell className="py-6 px-8">
-                              <span className="flex items-center gap-2 text-xs font-bold text-[#38CB89] uppercase tracking-widest">
-                                <span className="w-2 h-2 rounded-full bg-[#38CB89] animate-pulse" />
-                                Live
-                              </span>
+                              <div className="flex items-center gap-4">
+                                {game.trailerUrl && <Eye className="w-4 h-4 text-[#4D86FF]" title="Has Trailer" />}
+                                {game.zipPassword && <Lock className="w-4 h-4 text-[#FF9F1C]" title="Has Password" />}
+                              </div>
                             </TableCell>
                             <TableCell className="py-6 px-8">
                               <div className="flex items-center justify-center gap-2">
+                                <Button size="sm" variant="ghost" onClick={() => router.push(`/games/${game.id}`)} className="rounded-lg text-[#4D86FF] hover:bg-[#4D86FF]/10 h-10 px-3">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
                                 <Button size="sm" variant="ghost" onClick={() => handleDeleteGame(game.id)} className="rounded-lg text-[#FF6A55] hover:bg-[#FF6A55]/10 h-10 px-3">
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
