@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Futuristic battlefield with moonlight",
+      "imageUrl": "https://picsum.photos/seed/cyber-battlefield/1920/1080",
+      "imageHint": "cyberpunk battlefield"
+    },
+    {
+      "id": "game-1",
+      "description": "Neon RPG Action Game",
+      "imageUrl": "https://picsum.photos/seed/game-1/600/800",
+      "imageHint": "cyberpunk rpg"
+    },
+    {
+      "id": "game-2",
+      "description": "Space Explorer MMO",
+      "imageUrl": "https://picsum.photos/seed/game-2/600/800",
+      "imageHint": "sci-fi space"
+    },
+    {
+      "id": "game-3",
+      "description": "Cyber Combat Arena",
+      "imageUrl": "https://picsum.photos/seed/game-3/600/800",
+      "imageHint": "esports arena"
+    },
+    {
+      "id": "news-1",
+      "description": "New tournament announcement",
+      "imageUrl": "https://picsum.photos/seed/news-1/800/450",
+      "imageHint": "gaming tournament"
+    },
+    {
+      "id": "news-2",
+      "description": "VR Hardware Review",
+      "imageUrl": "https://picsum.photos/seed/news-2/800/450",
+      "imageHint": "vr headset"
+    }
+  ]
 }
