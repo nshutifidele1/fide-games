@@ -173,6 +173,8 @@ export default function AdminDashboard() {
     }
   };
 
+  const inputStyles = "rounded-xl h-12 bg-white border border-[#E2E8F0] focus:border-[#4D86FF] focus:ring-1 focus:ring-[#4D86FF] transition-all";
+
   return (
     <div className="flex min-h-screen bg-[#F0F2F5] font-body text-[#1A1D1F]">
       {/* Sidebar */}
@@ -379,7 +381,7 @@ export default function AdminDashboard() {
                           <Label htmlFor="title" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Game Title</Label>
                           <Input 
                             id="title" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            className={inputStyles} 
                             placeholder="e.g. Neon Protocol" 
                             value={newGame.title}
                             onChange={(e) => setNewGame({...newGame, title: e.target.value})}
@@ -388,7 +390,7 @@ export default function AdminDashboard() {
                         <div className="space-y-2">
                           <Label htmlFor="category" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Operational Category</Label>
                           <Select value={newGame.category} onValueChange={(v) => setNewGame({...newGame, category: v})}>
-                            <SelectTrigger className="rounded-xl h-12 bg-[#F4F4F4] border-none">
+                            <SelectTrigger className={inputStyles}>
                               <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
@@ -405,7 +407,7 @@ export default function AdminDashboard() {
                           <Label htmlFor="cover" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Cover Illustration URL</Label>
                           <Input 
                             id="cover" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            className={inputStyles} 
                             placeholder="https://images.unsplash.com/..." 
                             value={newGame.coverUrl}
                             onChange={(e) => setNewGame({...newGame, coverUrl: e.target.value})}
@@ -415,7 +417,7 @@ export default function AdminDashboard() {
                           <Label htmlFor="trailer" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">YouTube Video Trailer URL</Label>
                           <Input 
                             id="trailer" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            className={inputStyles} 
                             placeholder="https://youtube.com/watch?v=..." 
                             value={newGame.trailerUrl}
                             onChange={(e) => setNewGame({...newGame, trailerUrl: e.target.value})}
@@ -425,7 +427,7 @@ export default function AdminDashboard() {
                           <Label htmlFor="download" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">ZIP Asset Download URL</Label>
                           <Input 
                             id="download" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            className={inputStyles} 
                             placeholder="https://nexus-storage.fide.com/..." 
                             value={newGame.downloadUrl}
                             onChange={(e) => setNewGame({...newGame, downloadUrl: e.target.value})}
@@ -435,7 +437,7 @@ export default function AdminDashboard() {
                           <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">ZIP Decryption Key (Password)</Label>
                           <Input 
                             id="password" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            className={inputStyles} 
                             placeholder="Leave empty for no password" 
                             value={newGame.zipPassword}
                             onChange={(e) => setNewGame({...newGame, zipPassword: e.target.value})}
@@ -529,7 +531,7 @@ export default function AdminDashboard() {
                           <Label htmlFor="catName" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Category Name</Label>
                           <Input 
                             id="catName" 
-                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
+                            className={inputStyles} 
                             placeholder="e.g. Cyberpunk" 
                             value={newCategoryName}
                             onChange={(e) => setNewCategoryName(e.target.value)}
@@ -575,16 +577,16 @@ export default function AdminDashboard() {
                      <div className="space-y-8">
                         <div className="grid gap-4">
                           <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Platform Protocol Name</Label>
-                          <Input defaultValue="FIDE GAMES NEXUS" className="h-14 rounded-xl bg-[#F4F4F4] border-none" />
+                          <Input defaultValue="FIDE GAMES NEXUS" className={inputStyles} />
                         </div>
                         <div className="grid gap-4">
                           <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Primary Administrator</Label>
-                          <Input defaultValue="nshutifidele1@gmail.com" className="h-14 rounded-xl bg-[#F4F4F4] border-none" />
+                          <Input defaultValue="nshutifidele1@gmail.com" className={inputStyles} />
                         </div>
                         <div className="grid gap-4">
                           <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Neural Encryption Layer</Label>
                           <Select defaultValue="max">
-                            <SelectTrigger className="h-14 rounded-xl bg-[#F4F4F4] border-none">
+                            <SelectTrigger className={inputStyles}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
