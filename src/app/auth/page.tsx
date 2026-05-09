@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -55,123 +54,122 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B0C10]">
       <Link 
         href="/" 
         className="absolute top-8 left-8 flex items-center gap-2 text-white/50 hover:text-white transition-colors group z-20"
       >
         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-        <span className="font-headline text-sm font-bold uppercase tracking-widest">Return Home</span>
+        <span className="font-headline text-sm font-bold uppercase tracking-widest">Nexus Home</span>
       </Link>
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="auth-card w-full max-w-5xl rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row min-h-[600px]"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-6xl rounded-[3rem] overflow-hidden flex flex-col md:flex-row min-h-[700px] shadow-[0_0_100px_rgba(77,134,255,0.1)] border border-white/5 bg-[#14161B]"
       >
-        <div className="flex-1 p-10 lg:p-16 flex flex-col justify-center relative bg-background/40 backdrop-blur-md">
+        <div className="flex-1 p-12 lg:p-20 flex flex-col justify-center relative bg-gradient-to-b from-white/[0.02] to-transparent">
           <div className="max-w-md mx-auto w-full">
-            <div className="mb-10 text-center md:text-left">
-              <h1 className="text-5xl font-headline font-bold mb-2 tracking-tight text-primary">
+            <div className="mb-12 text-center md:text-left">
+              <h1 className="text-6xl font-headline font-bold mb-4 tracking-tighter text-white">
                 {isLogin ? "Sign In" : "Sign Up"}
               </h1>
-              <p className="text-white/40 text-sm font-body tracking-wide">
-                Join the FIDE digital sanctuary
+              <p className="text-[#808191] text-lg font-body font-medium">
+                Enter the FIDE digital sanctuary.
               </p>
             </div>
 
             <form className="space-y-8" onSubmit={handleSubmit}>
               {!isLogin && (
-                <div className="space-y-2 relative group">
-                  <Label className="text-xs uppercase tracking-widest text-white/60 font-headline font-bold">User name</Label>
+                <div className="space-y-3 relative group">
+                  <Label className="text-xs uppercase tracking-[0.2em] text-[#808191] font-headline font-bold">Agent Name</Label>
                   <div className="relative">
                     <Input 
                       placeholder="Cipher-01" 
-                      className="input-auth pr-10" 
+                      className="h-14 bg-white/5 border-none rounded-2xl px-6 focus-visible:ring-1 focus-visible:ring-[#4D86FF] transition-all" 
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       required={!isLogin}
                     />
-                    <User className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors" />
+                    <User className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#808191]" />
                   </div>
                 </div>
               )}
 
-              <div className="space-y-2 relative group">
-                <Label className="text-xs uppercase tracking-widest text-white/60 font-headline font-bold">Email</Label>
+              <div className="space-y-3 relative group">
+                <Label className="text-xs uppercase tracking-[0.2em] text-[#808191] font-headline font-bold">Registry Email</Label>
                 <div className="relative">
                   <Input 
                     type="email"
                     placeholder="nexus@fide.com" 
-                    className="input-auth pr-10" 
+                    className="h-14 bg-white/5 border-none rounded-2xl px-6 focus-visible:ring-1 focus-visible:ring-[#4D86FF] transition-all" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
-                  <Mail className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors" />
+                  <Mail className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#808191]" />
                 </div>
               </div>
 
-              <div className="space-y-2 relative group">
-                <Label className="text-xs uppercase tracking-widest text-white/60 font-headline font-bold">Password</Label>
+              <div className="space-y-3 relative group">
+                <Label className="text-xs uppercase tracking-[0.2em] text-[#808191] font-headline font-bold">Neural Key</Label>
                 <div className="relative">
                   <Input 
                     type="password"
                     placeholder="••••••••" 
-                    className="input-auth pr-10" 
+                    className="h-14 bg-white/5 border-none rounded-2xl px-6 focus-visible:ring-1 focus-visible:ring-[#4D86FF] transition-all" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
-                  <Lock className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#808191]" />
                 </div>
               </div>
 
-              <div className="pt-6">
+              <div className="pt-8">
                 <Button 
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white font-headline font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(var(--primary),0.3)]"
+                  className="w-full h-16 rounded-2xl bg-[#4D86FF] hover:bg-[#3B71E0] text-white font-headline font-bold text-xl transition-all duration-300 shadow-[0_20px_40px_rgba(77,134,255,0.2)]"
                 >
-                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isLogin ? "Enter Nexus" : "Initialize Account")}
+                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isLogin ? "Authenticate" : "Register Agent")}
                 </Button>
               </div>
             </form>
 
-            <div className="mt-10 text-center">
+            <div className="mt-12 text-center">
               <button 
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-white/40 hover:text-white text-sm font-headline tracking-widest transition-colors uppercase font-bold"
+                className="text-[#808191] hover:text-white text-sm font-headline tracking-widest transition-colors uppercase font-bold"
               >
-                {isLogin ? "Need an Account?" : "Already Have Account?"}
+                {isLogin ? "Need new credentials?" : "Already registered?"}
               </button>
             </div>
           </div>
         </div>
 
-        <div className="hidden md:flex flex-1 p-0">
-          <div className="relative w-full h-full overflow-hidden bg-[#0a0a1a] flex items-center justify-center">
-            <Image
-              src={illust?.imageUrl || "https://picsum.photos/seed/neon-vr-child/800/800"}
-              alt="Artistic Illustration"
-              fill
-              className="object-cover opacity-90"
-              data-ai-hint="neon child vr"
-            />
-            
-            <div className="absolute bottom-8 left-8 flex items-center gap-3 glass p-3 px-5 rounded-2xl">
-              <Gamepad2 className="w-6 h-6 text-primary" />
-              <span className="font-headline font-bold text-lg tracking-tight">FIDE GAMES</span>
+        <div className="hidden md:flex flex-1 p-0 relative overflow-hidden">
+          <Image
+            src={illust?.imageUrl || "https://picsum.photos/seed/neon-vr-child/800/800"}
+            alt="Artistic Illustration"
+            fill
+            className="object-cover"
+            priority
+            data-ai-hint="neon child vr"
+          />
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#14161B]" />
+          <div className="absolute bottom-12 left-12 flex items-center gap-4 bg-white/5 backdrop-blur-xl p-5 px-8 rounded-[2rem] border border-white/10">
+            <div className="w-12 h-12 bg-[#4D86FF] rounded-2xl flex items-center justify-center">
+               <Gamepad2 className="w-6 h-6 text-white" />
             </div>
-
-            <div className="absolute inset-0 bg-gradient-to-r from-background/20 via-transparent to-transparent pointer-events-none" />
+            <div>
+              <p className="font-headline font-bold text-2xl tracking-tighter text-white">FIDE NEXUS</p>
+              <p className="text-[10px] uppercase tracking-widest text-[#4D86FF] font-bold">Operational Phase 4.0</p>
+            </div>
           </div>
         </div>
       </motion.div>
-
-      <div className="fixed -top-24 -left-24 w-96 h-96 bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed -bottom-24 -right-24 w-[500px] h-[500px] bg-secondary/10 blur-[150px] rounded-full pointer-events-none" />
     </div>
   );
 }

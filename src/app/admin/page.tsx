@@ -1,22 +1,21 @@
-
 "use client";
 
 import React, { useState } from "react";
 import { 
   Search, 
   Bell, 
-  MoreVertical, 
   Download, 
   Plus, 
   Gamepad, 
   Settings, 
   Users, 
   LayoutDashboard,
-  ChevronDown,
   ChevronRight,
   Upload,
   Database,
-  Trash2
+  Trash2,
+  LogOut,
+  Filter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,14 +47,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useFirestore, useCollection } from "@/firebase";
+import { useFirestore, useCollection, useAuth } from "@/firebase";
 import { collection, addDoc, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAddingGame, setIsAddingGame] = useState(false);
   const firestore = useFirestore();
+  const auth = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
 
   // New Game Form State
@@ -69,190 +72,207 @@ export default function AdminDashboard() {
   const gamesRef = firestore ? collection(firestore, "games") : null;
   const { data: games, loading: gamesLoading } = useCollection(gamesRef);
 
-  const handleAddGame = async () => {
+  const handleAddGame = () => {
     if (!firestore) return;
     if (!newGame.title || !newGame.coverUrl || !newGame.downloadUrl) {
-      toast({ title: "Error", description: "Please fill all fields", variant: "destructive" });
+      toast({ title: "Validation Error", description: "Please ensure all mission parameters are set.", variant: "destructive" });
       return;
     }
 
-    try {
-      await addDoc(collection(firestore, "games"), {
-        ...newGame,
-        createdAt: serverTimestamp()
-      });
-      toast({ title: "Success", description: "Game added to the database." });
+    addDoc(collection(firestore, "games"), {
+      ...newGame,
+      createdAt: serverTimestamp()
+    }).then(() => {
+      toast({ title: "Success", description: "Game title successfully uploaded to the Nexus." });
       setNewGame({ title: "", coverUrl: "", downloadUrl: "", category: "Action" });
       setIsAddingGame(false);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    }
+    }).catch((e: any) => {
+      toast({ title: "Upload Failed", description: e.message, variant: "destructive" });
+    });
   };
 
-  const handleDeleteGame = async (gameId: string) => {
+  const handleDeleteGame = (gameId: string) => {
     if (!firestore) return;
-    try {
-      await deleteDoc(doc(firestore, "games", gameId));
-      toast({ title: "Deleted", description: "Game removed from database." });
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+    deleteDoc(doc(firestore, "games", gameId)).then(() => {
+      toast({ title: "Deleted", description: "Game title removed from the database." });
+    }).catch((e: any) => {
+      toast({ title: "Deletion Failed", description: e.message, variant: "destructive" });
+    });
+  };
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push("/");
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f4f7fa] font-body text-[#333]">
+    <div className="flex min-h-screen bg-[#F0F2F5] font-body text-[#1A1D1F]">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#1e2532] text-white flex flex-col shrink-0">
-        <div className="p-6">
-          <div className="bg-[#4d86ff] rounded-xl p-3 flex items-center justify-center gap-2 mb-8">
-            <LayoutDashboard className="w-6 h-6" />
-            <span className="font-headline font-bold text-xl tracking-tight italic">FIDE ADMIN</span>
+      <aside className="w-[280px] bg-[#111315] text-[#808191] flex flex-col shrink-0 border-r border-[#272B30]">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-10 px-2">
+            <div className="w-10 h-10 bg-[#4D86FF] rounded-xl flex items-center justify-center">
+              <Gamepad className="w-6 h-6 text-white" />
+            </div>
+            <span className="font-headline font-bold text-xl tracking-tight text-white uppercase italic">Nexus Admin</span>
           </div>
 
-          <nav className="space-y-1">
-            <button 
-              onClick={() => setActiveTab("dashboard")}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-[#4d86ff] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-            >
-              <LayoutDashboard className="w-5 h-5" />
-              <span className="text-sm font-medium">Dashboard</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab("users")}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeTab === 'users' ? 'bg-[#4d86ff] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-            >
-              <Users className="w-5 h-5" />
-              <span className="text-sm font-medium">User Management</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab("games")}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeTab === 'games' ? 'bg-[#4d86ff] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-            >
-              <Gamepad className="w-5 h-5" />
-              <span className="text-sm font-medium">Game Database</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab("settings")}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-[#4d86ff] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-            >
-              <Settings className="w-5 h-5" />
-              <span className="text-sm font-medium">Settings</span>
-            </button>
+          <nav className="space-y-2">
+            {[
+              { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+              { id: "users", icon: Users, label: "User Registry" },
+              { id: "games", icon: Gamepad, label: "Games Database" },
+              { id: "settings", icon: Settings, label: "Nexus Settings" },
+            ].map((item) => (
+              <button 
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all font-bold text-sm ${activeTab === item.id ? 'bg-[#4D86FF] text-white shadow-[0_10px_20px_rgba(77,134,255,0.2)]' : 'hover:text-white hover:bg-[#272B30]'}`}
+              >
+                <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-white' : ''}`} />
+                {item.label}
+              </button>
+            ))}
           </nav>
+        </div>
+
+        <div className="mt-auto p-8 border-t border-[#272B30]">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 p-4 rounded-xl text-[#FF6A55] hover:bg-[#FF6A55]/10 transition-colors font-bold text-sm"
+          >
+            <LogOut className="w-5 h-5" />
+            Sign Out
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-10">
-          <div className="flex items-center gap-4 text-gray-400">
-            <Badge variant="outline" className="text-[#4d86ff] border-[#4d86ff]/30">System Status: Optimal</Badge>
+        <header className="h-[96px] bg-white border-b border-[#EFEFEF] flex items-center justify-between px-10">
+          <div className="flex items-center gap-4">
+             <h2 className="text-2xl font-bold font-headline">Platform Control</h2>
           </div>
           <div className="flex items-center gap-6">
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+            <div className="relative group hidden sm:block">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#808191]" />
+              <Input placeholder="Global Search..." className="pl-11 w-80 h-12 bg-[#F4F4F4] border-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#4D86FF]" />
+            </div>
+            <button className="relative p-3 rounded-xl bg-[#F4F4F4] text-[#1A1D1F] hover:bg-[#EFEFEF] transition-colors">
               <Bell className="w-5 h-5" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-[#FF6A55] rounded-full border-2 border-white" />
             </button>
-            <div className="flex items-center gap-3 pl-6 border-l border-gray-100">
-              <Avatar className="w-10 h-10 ring-2 ring-gray-50">
-                <AvatarImage src="https://picsum.photos/seed/admin-p/100/100" />
-                <AvatarFallback>AD</AvatarFallback>
-              </Avatar>
-              <div className="hidden sm:block">
-                <p className="text-sm font-bold">Fide Admin</p>
-                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Super Agent</p>
+            <div className="flex items-center gap-4 pl-6 border-l border-[#EFEFEF]">
+              <div className="text-right">
+                <p className="text-sm font-bold">Admin Fide</p>
+                <p className="text-[11px] text-[#808191] font-bold">Super Administrator</p>
               </div>
+              <Avatar className="w-12 h-12 rounded-xl border-2 border-[#EFEFEF]">
+                <AvatarImage src="https://picsum.photos/seed/admin-x/100/100" />
+                <AvatarFallback>AF</AvatarFallback>
+              </Avatar>
             </div>
           </div>
         </header>
 
         {/* Content Area */}
         <div className="p-10 flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-[1400px] mx-auto">
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
               
-              {/* Dashboard Content */}
               <TabsContent value="dashboard" className="space-y-8">
-                <div>
-                  <h1 className="text-3xl font-headline font-bold text-[#1e2532] mb-2">Nexus Overview</h1>
-                  <p className="text-gray-400 text-sm">Real-time platform performance and statistics.</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EFEFEF]">
+                    <div className="w-12 h-12 bg-[#EAF2FF] rounded-2xl flex items-center justify-center mb-6">
+                      <Users className="w-6 h-6 text-[#4D86FF]" />
+                    </div>
+                    <p className="text-sm font-bold text-[#808191] mb-2">Total Platform Agents</p>
+                    <div className="flex items-end gap-3">
+                      <h3 className="text-4xl font-headline font-bold">142,932</h3>
+                      <span className="text-green-500 font-bold text-sm mb-1">+12.5%</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EFEFEF]">
+                    <div className="w-12 h-12 bg-[#FFF4E5] rounded-2xl flex items-center justify-center mb-6">
+                      <Gamepad className="w-6 h-6 text-[#FF9F1C]" />
+                    </div>
+                    <p className="text-sm font-bold text-[#808191] mb-2">Live Nexus Titles</p>
+                    <div className="flex items-end gap-3">
+                      <h3 className="text-4xl font-headline font-bold">{games?.length || 0}</h3>
+                      <span className="text-[#4D86FF] font-bold text-sm mb-1">Active</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#EFEFEF]">
+                    <div className="w-12 h-12 bg-[#E5F9F1] rounded-2xl flex items-center justify-center mb-6">
+                      <Download className="w-6 h-6 text-[#38CB89]" />
+                    </div>
+                    <p className="text-sm font-bold text-[#808191] mb-2">Global Deployments</p>
+                    <div className="flex items-end gap-3">
+                      <h3 className="text-4xl font-headline font-bold">84,201</h3>
+                      <span className="text-green-500 font-bold text-sm mb-1">+5.4%</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-2">Total Users</p>
-                    <h3 className="text-4xl font-headline font-bold">142,932</h3>
-                    <div className="mt-4 flex items-center gap-2 text-green-500 text-sm font-bold">
-                      <ChevronRight className="w-4 h-4 rotate-[-90deg]" />
-                      +12% vs last month
-                    </div>
-                  </div>
-                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-2">Active Games</p>
-                    <h3 className="text-4xl font-headline font-bold">{games?.length || 0}</h3>
-                    <div className="mt-4 flex items-center gap-2 text-[#4d86ff] text-sm font-bold">
-                      <Database className="w-4 h-4" />
-                      Live in Nexus
-                    </div>
-                  </div>
-                  <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest mb-2">Monthly Downloads</p>
-                    <h3 className="text-4xl font-headline font-bold">84,201</h3>
-                    <div className="mt-4 flex items-center gap-2 text-green-500 text-sm font-bold">
-                      <ChevronRight className="w-4 h-4 rotate-[-90deg]" />
-                      +5.4% growth
-                    </div>
+
+                <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
+                  <h3 className="text-xl font-bold mb-6">Platform Activity Matrix</h3>
+                  <div className="h-64 flex items-center justify-center text-[#808191] italic bg-[#F4F4F4] rounded-2xl">
+                    [ Activity Analytics Component Placeholder ]
                   </div>
                 </div>
               </TabsContent>
 
-              {/* Users Content */}
               <TabsContent value="users" className="space-y-8">
-                <div>
-                  <h1 className="text-3xl font-headline font-bold text-[#1e2532] mb-2">User Registry</h1>
-                  <p className="text-gray-400 text-sm">Manage platform agents and access permissions.</p>
+                <div className="flex justify-between items-center">
+                  <h1 className="text-3xl font-headline font-bold">User Registry</h1>
+                  <Button className="bg-[#4D86FF] hover:bg-[#3B71E0] rounded-xl h-12 px-6 gap-2 font-bold">
+                    <Plus className="w-4 h-4" /> Register New Agent
+                  </Button>
                 </div>
-                <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden p-8">
-                   <div className="flex justify-between items-center mb-8">
-                      <div className="relative w-96">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input placeholder="Search users by email or ID..." className="pl-10 h-12 rounded-xl" />
-                      </div>
-                      <Button className="bg-[#4d86ff] rounded-xl h-12 px-6 gap-2">
-                        <Plus className="w-4 h-4" /> Add User
-                      </Button>
-                   </div>
-                   <Table>
-                      <TableHeader className="bg-[#f8faff]">
-                        <TableRow className="border-none">
-                          <TableHead className="font-bold py-6 px-4">User</TableHead>
-                          <TableHead className="font-bold py-6 px-4">Status</TableHead>
-                          <TableHead className="font-bold py-6 px-4">Role</TableHead>
-                          <TableHead className="font-bold py-6 px-4">Joined</TableHead>
-                          <TableHead className="font-bold py-6 px-4 text-center">Operate</TableHead>
+                <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] overflow-hidden">
+                  <div className="p-8 border-b border-[#EFEFEF] flex justify-between items-center bg-[#FCFCFC]">
+                    <div className="flex items-center gap-4">
+                      <Filter className="w-4 h-4 text-[#808191]" />
+                      <span className="text-sm font-bold text-[#808191]">Filters:</span>
+                      <Badge variant="outline" className="rounded-lg px-3 py-1 text-[#1A1D1F] border-[#EFEFEF] bg-white">All Agents</Badge>
+                      <Badge variant="outline" className="rounded-lg px-3 py-1 text-[#808191] border-[#EFEFEF] hover:bg-white cursor-pointer">Active</Badge>
+                    </div>
+                  </div>
+                  <Table>
+                      <TableHeader className="bg-white">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Agent Identity</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Status</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Neural Tier</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Joined</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-center text-[#808191] uppercase text-[11px] tracking-widest">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {[1, 2, 3].map((i) => (
-                          <TableRow key={i} className="border-b border-gray-50 hover:bg-gray-50/50">
-                            <TableCell className="py-6 px-4">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="w-8 h-8">
+                        {[1, 2, 3, 4].map((i) => (
+                          <TableRow key={i} className="hover:bg-[#F4F4F4]/50 border-b border-[#F4F4F4]">
+                            <TableCell className="py-6 px-8">
+                              <div className="flex items-center gap-4">
+                                <Avatar className="w-10 h-10 rounded-xl">
                                   <AvatarImage src={`https://picsum.photos/seed/user-${i}/100/100`} />
                                 </Avatar>
                                 <div>
-                                  <p className="font-bold text-sm">Agent_{i}</p>
-                                  <p className="text-xs text-muted-foreground">agent{i}@fide.com</p>
+                                  <p className="font-bold text-sm">Agent_{i+100}</p>
+                                  <p className="text-xs text-[#808191]">agent{i}@fide.com</p>
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="py-6 px-4">
-                              <Badge className="bg-green-100 text-green-600 hover:bg-green-100 border-none shadow-none">Online</Badge>
+                            <TableCell className="py-6 px-8">
+                              <Badge className="bg-[#38CB89]/10 text-[#38CB89] hover:bg-[#38CB89]/20 border-none shadow-none rounded-lg px-3 py-1 font-bold">Online</Badge>
                             </TableCell>
-                            <TableCell className="py-6 px-4 font-medium text-sm">Pro Member</TableCell>
-                            <TableCell className="py-6 px-4 text-gray-500 text-sm">2024.01.{i+10}</TableCell>
-                            <TableCell className="py-6 px-4 text-center">
-                              <Button variant="ghost" size="sm" className="text-[#4d86ff] hover:bg-[#4d86ff]/5">View Nexus</Button>
+                            <TableCell className="py-6 px-8 font-bold text-sm">Level {i * 5}</TableCell>
+                            <TableCell className="py-6 px-8 text-[#808191] text-sm">Jan {i+10}, 2025</TableCell>
+                            <TableCell className="py-6 px-8 text-center">
+                              <Button variant="ghost" size="sm" className="text-[#4D86FF] font-bold hover:bg-[#4D86FF]/10 rounded-lg">Manage</Button>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -261,66 +281,62 @@ export default function AdminDashboard() {
                 </div>
               </TabsContent>
 
-              {/* Games Content */}
               <TabsContent value="games" className="space-y-8">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h1 className="text-3xl font-headline font-bold text-[#1e2532] mb-2">Game Database</h1>
-                    <p className="text-gray-400 text-sm">Upload and manage titles available in the Nexus.</p>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <h1 className="text-3xl font-headline font-bold">Games Repository</h1>
                   
                   <Dialog open={isAddingGame} onOpenChange={setIsAddingGame}>
                     <DialogTrigger asChild>
-                      <Button className="bg-[#4d86ff] hover:bg-[#3b71e0] h-12 px-6 rounded-xl font-bold flex gap-2">
+                      <Button className="bg-[#4D86FF] hover:bg-[#3B71E0] h-12 px-8 rounded-xl font-bold flex gap-3 shadow-[0_10px_20px_rgba(77,134,255,0.2)]">
                         <Upload className="w-4 h-4" />
-                        Upload New Game
+                        Deploy New Title
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
-                      <DialogHeader>
+                    <DialogContent className="sm:max-w-[500px] rounded-3xl p-8 border-none bg-white">
+                      <DialogHeader className="mb-6">
                         <DialogTitle className="font-headline text-2xl font-bold">New Mission Payload</DialogTitle>
-                        <DialogDescription>
-                          Add a new game title to the FIDE platform. Fill in all neural parameters.
+                        <DialogDescription className="text-[#808191] font-bold">
+                          Define the parameters for the new game deployment.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-6 py-4">
+                      <div className="space-y-6">
                         <div className="space-y-2">
-                          <Label htmlFor="title" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Game Title</Label>
+                          <Label htmlFor="title" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Game Title</Label>
                           <Input 
                             id="title" 
-                            className="rounded-xl h-12" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
                             placeholder="e.g. Neon Protocol" 
                             value={newGame.title}
                             onChange={(e) => setNewGame({...newGame, title: e.target.value})}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="cover" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Cover Photo URL</Label>
+                          <Label htmlFor="cover" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Cover Illustration URL</Label>
                           <Input 
                             id="cover" 
-                            className="rounded-xl h-12" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
                             placeholder="https://images.unsplash.com/..." 
                             value={newGame.coverUrl}
                             onChange={(e) => setNewGame({...newGame, coverUrl: e.target.value})}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="download" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Download URL</Label>
+                          <Label htmlFor="download" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Asset Download URL</Label>
                           <Input 
                             id="download" 
-                            className="rounded-xl h-12" 
+                            className="rounded-xl h-12 bg-[#F4F4F4] border-none" 
                             placeholder="https://nexus-storage.fide.com/..." 
                             value={newGame.downloadUrl}
                             onChange={(e) => setNewGame({...newGame, downloadUrl: e.target.value})}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="category" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category</Label>
+                          <Label htmlFor="category" className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Operational Category</Label>
                           <Select value={newGame.category} onValueChange={(v) => setNewGame({...newGame, category: v})}>
-                            <SelectTrigger className="rounded-xl h-12">
+                            <SelectTrigger className="rounded-xl h-12 bg-[#F4F4F4] border-none">
                               <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="rounded-xl">
                               <SelectItem value="Action">Action</SelectItem>
                               <SelectItem value="RPG">RPG</SelectItem>
                               <SelectItem value="Strategy">Strategy</SelectItem>
@@ -330,51 +346,51 @@ export default function AdminDashboard() {
                           </Select>
                         </div>
                       </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddingGame(false)} className="rounded-xl h-12 border-gray-200">Cancel</Button>
-                        <Button onClick={handleAddGame} className="bg-[#4d86ff] hover:bg-[#3b71e0] rounded-xl h-12 px-8 font-bold">Initialize Upload</Button>
+                      <DialogFooter className="mt-10 gap-3">
+                        <Button variant="ghost" onClick={() => setIsAddingGame(false)} className="rounded-xl h-12 px-6 font-bold text-[#808191]">Cancel</Button>
+                        <Button onClick={handleAddGame} className="bg-[#4D86FF] hover:bg-[#3B71E0] rounded-xl h-12 px-10 font-bold text-white shadow-[0_10px_20px_rgba(77,134,255,0.2)]">Finalize Upload</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 </div>
 
-                <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden p-8">
+                <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] overflow-hidden">
                   {gamesLoading ? (
-                    <div className="py-20 text-center text-muted-foreground animate-pulse font-headline uppercase tracking-widest">Scanning Database...</div>
+                    <div className="py-20 text-center text-[#808191] animate-pulse font-headline font-bold uppercase tracking-widest">Scanning Nexus Database...</div>
                   ) : (
                     <Table>
-                      <TableHeader className="bg-[#f8faff]">
-                        <TableRow className="border-none">
-                          <TableHead className="font-bold py-6 px-4">Game Title</TableHead>
-                          <TableHead className="font-bold py-6 px-4">Category</TableHead>
-                          <TableHead className="font-bold py-6 px-4">Status</TableHead>
-                          <TableHead className="font-bold py-6 px-4 text-center">Operate</TableHead>
+                      <TableHeader className="bg-white">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Title</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Category</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-[#808191] uppercase text-[11px] tracking-widest">Deployment</TableHead>
+                          <TableHead className="font-bold py-6 px-8 text-center text-[#808191] uppercase text-[11px] tracking-widest">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {games?.map((game: any) => (
-                          <TableRow key={game.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                            <TableCell className="py-6 px-4">
+                          <TableRow key={game.id} className="hover:bg-[#F4F4F4]/50 border-b border-[#F4F4F4]">
+                            <TableCell className="py-6 px-8">
                               <div className="flex items-center gap-4">
-                                <div className="w-12 h-16 relative rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                                <div className="w-14 h-14 relative rounded-xl overflow-hidden bg-[#F4F4F4] flex-shrink-0 border border-[#EFEFEF]">
                                   <img src={game.coverUrl} alt={game.title} className="w-full h-full object-cover" />
                                 </div>
                                 <p className="font-bold text-sm">{game.title}</p>
                               </div>
                             </TableCell>
-                            <TableCell className="py-6 px-4">
-                              <Badge variant="outline" className="rounded-full px-4 border-[#4d86ff]/20 text-[#4d86ff]">{game.category}</Badge>
+                            <TableCell className="py-6 px-8">
+                              <Badge variant="outline" className="rounded-lg px-3 py-1 border-[#4D86FF]/20 text-[#4D86FF] bg-[#4D86FF]/5 font-bold">{game.category}</Badge>
                             </TableCell>
-                            <TableCell className="py-6 px-4">
-                              <span className="flex items-center gap-2 text-xs font-bold text-green-500 uppercase tracking-widest">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <TableCell className="py-6 px-8">
+                              <span className="flex items-center gap-2 text-xs font-bold text-[#38CB89] uppercase tracking-widest">
+                                <span className="w-2 h-2 rounded-full bg-[#38CB89] animate-pulse" />
                                 Live
                               </span>
                             </TableCell>
-                            <TableCell className="py-6 px-4">
+                            <TableCell className="py-6 px-8">
                               <div className="flex items-center justify-center gap-2">
-                                <Button size="sm" variant="outline" className="rounded-lg border-[#4d86ff] text-[#4d86ff] hover:bg-[#4d86ff] hover:text-white transition-all h-8 text-xs font-bold px-4">Edit</Button>
-                                <Button size="sm" variant="ghost" onClick={() => handleDeleteGame(game.id)} className="rounded-lg text-red-400 hover:text-red-500 hover:bg-red-50 h-8 text-xs font-bold px-4">
+                                <Button size="sm" variant="ghost" className="rounded-lg text-[#4D86FF] hover:bg-[#4D86FF]/10 h-10 font-bold px-4">Modify</Button>
+                                <Button size="sm" variant="ghost" onClick={() => handleDeleteGame(game.id)} className="rounded-lg text-[#FF6A55] hover:bg-[#FF6A55]/10 h-10 px-3">
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
@@ -383,7 +399,7 @@ export default function AdminDashboard() {
                         ))}
                         {(!games || games.length === 0) && (
                           <TableRow>
-                            <TableCell colSpan={4} className="py-20 text-center text-muted-foreground">No games found in the Nexus database.</TableCell>
+                            <TableCell colSpan={4} className="py-20 text-center text-[#808191] font-bold">No active titles found in the Nexus database.</TableCell>
                           </TableRow>
                         )}
                       </TableBody>
@@ -392,36 +408,56 @@ export default function AdminDashboard() {
                 </div>
               </TabsContent>
 
-              {/* Settings Content */}
               <TabsContent value="settings" className="space-y-8">
-                <div>
-                  <h1 className="text-3xl font-headline font-bold text-[#1e2532] mb-2">Nexus Settings</h1>
-                  <p className="text-gray-400 text-sm">System configuration and security protocols.</p>
-                </div>
-                <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-10 max-w-2xl">
-                   <div className="space-y-8">
-                      <div className="grid gap-4">
-                        <Label className="text-sm font-bold uppercase tracking-widest">Platform Name</Label>
-                        <Input defaultValue="FIDE GAMES" className="h-12 rounded-xl" />
-                      </div>
-                      <div className="grid gap-4">
-                        <Label className="text-sm font-bold uppercase tracking-widest">Admin Email</Label>
-                        <Input defaultValue="nshutifidele1@gmail.com" className="h-12 rounded-xl" />
-                      </div>
-                      <div className="grid gap-4">
-                        <Label className="text-sm font-bold uppercase tracking-widest">Security Layer</Label>
-                        <Select defaultValue="max">
-                          <SelectTrigger className="h-12 rounded-xl">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="standard">Standard Protection</SelectItem>
-                            <SelectItem value="max">Maximum Neural Encryption</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button className="bg-[#4d86ff] w-full h-12 rounded-xl font-bold text-lg">Update Core Settings</Button>
-                   </div>
+                <h1 className="text-3xl font-headline font-bold">Nexus Configuration</h1>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-10">
+                     <div className="space-y-8">
+                        <div className="grid gap-4">
+                          <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Platform Protocol Name</Label>
+                          <Input defaultValue="FIDE GAMES NEXUS" className="h-14 rounded-xl bg-[#F4F4F4] border-none" />
+                        </div>
+                        <div className="grid gap-4">
+                          <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Primary Administrator</Label>
+                          <Input defaultValue="nshutifidele1@gmail.com" className="h-14 rounded-xl bg-[#F4F4F4] border-none" />
+                        </div>
+                        <div className="grid gap-4">
+                          <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Neural Encryption Layer</Label>
+                          <Select defaultValue="max">
+                            <SelectTrigger className="h-14 rounded-xl bg-[#F4F4F4] border-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              <SelectItem value="standard">Standard Defense</SelectItem>
+                              <SelectItem value="max">Maximum Quantum Encryption</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button className="bg-[#111315] hover:bg-black text-white w-full h-14 rounded-xl font-bold text-lg shadow-lg">Commit Global Changes</Button>
+                     </div>
+                  </div>
+
+                  <div className="space-y-8">
+                    <div className="bg-[#111315] rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
+                       <div className="relative z-10">
+                         <h4 className="text-2xl font-headline font-bold mb-4">System Status</h4>
+                         <div className="space-y-6">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#808191] font-bold">Uptime</span>
+                              <span className="text-[#38CB89] font-bold">99.99%</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#808191] font-bold">Memory Pulse</span>
+                              <span className="text-white font-bold">2.4 GB / 8 GB</span>
+                            </div>
+                            <div className="w-full bg-[#272B30] h-2 rounded-full">
+                              <div className="bg-[#4D86FF] h-full w-[30%] rounded-full shadow-[0_0_10px_#4D86FF]" />
+                            </div>
+                         </div>
+                       </div>
+                       <div className="absolute top-0 right-0 w-32 h-32 bg-[#4D86FF]/10 blur-[60px] rounded-full" />
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 

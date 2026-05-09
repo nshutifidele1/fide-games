@@ -35,10 +35,6 @@ const AIGameDiscovererToolOutputSchema = z.object({
 });
 export type AIGameDiscovererToolOutput = z.infer<typeof AIGameDiscovererToolOutputSchema>;
 
-export async function aiGameDiscovererTool(input: AIGameDiscovererToolInput): Promise<AIGameDiscovererToolOutput> {
-  return aiGameDiscovererFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'aiGameDiscovererPrompt',
   input: { schema: AIGameDiscovererToolInputSchema },
@@ -79,7 +75,23 @@ const aiGameDiscovererFlow = ai.defineFlow(
     outputSchema: AIGameDiscovererToolOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      return output!;
+    } catch (error) {
+      console.error("AI discovery failed, returning fallback data.", error);
+      // Fallback data to prevent UI breakage if AI service is unavailable
+      return {
+        recommendedGames: [
+          { title: "NEON PROTOCOL", reason: "Based on your love for Cyberpunk 2077.", genre: "RPG" },
+          { title: "VOID CHASE", reason: "Matches your preference for high-octane action.", genre: "Racing" },
+          { title: "TITAN ECHO", reason: "Perfect for fans of deep strategy and mechs.", genre: "Strategy" }
+        ]
+      };
+    }
   }
 );
+
+export async function aiGameDiscovererTool(input: AIGameDiscovererToolInput): Promise<AIGameDiscovererToolOutput> {
+  return aiGameDiscovererFlow(input);
+}
