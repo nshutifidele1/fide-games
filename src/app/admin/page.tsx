@@ -566,14 +566,39 @@ export default function AdminDashboard() {
               <TabsContent value="categories" className="space-y-8">
                 <div className="flex justify-between items-center">
                   <h1 className="text-3xl font-headline font-bold">Categories</h1>
-                  <Button onClick={() => setIsAddingCategory(true)} className="bg-[#4D86FF]">New Category</Button>
+                  <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-[#4D86FF] hover:bg-[#3B71E0] h-12 px-8 rounded-xl font-bold flex gap-3 shadow-[0_10px_20px_rgba(77,134,255,0.2)]">
+                        <Plus className="w-4 h-4" />
+                        New Category
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[400px] rounded-3xl p-8 border-none bg-white">
+                      <DialogHeader className="mb-6">
+                        <DialogTitle className="font-headline text-2xl font-bold">Establish Category</DialogTitle>
+                        <DialogDescription>Add a new classification for the gaming repository.</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Category Name</Label>
+                          <Input className={inputStyles} placeholder="e.g. Action RPG" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
+                        </div>
+                      </div>
+                      <DialogFooter className="mt-10 gap-3">
+                        <Button variant="ghost" onClick={() => setIsAddingCategory(false)}>Cancel</Button>
+                        <Button onClick={handleAddCategory} className="bg-[#4D86FF] text-white">Create</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {categories?.map((cat: any) => (
-                        <div key={cat.id} className="p-6 rounded-2xl bg-[#F4F4F4] flex justify-between items-center">
+                      {categoriesLoading ? (
+                        <div className="col-span-full py-10 text-center animate-pulse text-[#808191]">Syncing classifications...</div>
+                      ) : categories?.map((cat: any) => (
+                        <div key={cat.id} className="p-6 rounded-2xl bg-[#F4F4F4] flex justify-between items-center group hover:bg-[#EFEFEF] transition-all">
                           <p className="font-bold">{cat.name}</p>
-                          <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="text-destructive">
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="text-destructive hover:bg-destructive/10">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
