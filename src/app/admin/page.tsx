@@ -173,7 +173,8 @@ export default function AdminDashboard() {
     }
   };
 
-  const inputStyles = "rounded-xl h-12 bg-white border border-[#E2E8F0] focus:border-[#4D86FF] focus:ring-1 focus:ring-[#4D86FF] transition-all";
+  // Updated inputStyles with text-red-600
+  const inputStyles = "rounded-xl h-12 bg-white border border-[#E2E8F0] focus:border-[#4D86FF] focus:ring-1 focus:ring-[#4D86FF] transition-all text-red-600 font-bold";
 
   return (
     <div className="flex min-h-screen bg-[#F0F2F5] font-body text-[#1A1D1F]">
@@ -228,7 +229,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-6">
             <div className="relative group hidden sm:block">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#808191]" />
-              <Input placeholder="Registry Scan..." className="pl-11 w-80 h-12 bg-[#F4F4F4] border-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#4D86FF]" />
+              <Input placeholder="Registry Scan..." className="pl-11 w-80 h-12 bg-[#F4F4F4] border-none rounded-xl focus-visible:ring-1 focus-visible:ring-[#4D86FF] text-red-600 font-bold" />
             </div>
             <button className="relative p-3 rounded-xl bg-[#F4F4F4] text-[#1A1D1F] hover:bg-[#EFEFEF] transition-colors">
               <Bell className="w-5 h-5" />
