@@ -1,29 +1,30 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 270 20% 12%;
+    --background: 260 30% 12%;
     --foreground: 0 0% 98%;
-    --card: 270 20% 15%;
+    --card: 260 30% 15% / 0.5;
     --card-foreground: 0 0% 98%;
-    --popover: 270 20% 12%;
+    --popover: 260 30% 12%;
     --popover-foreground: 0 0% 98%;
-    --primary: 270 80% 50%;
+    --primary: 325 60% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 90% 65%;
+    --secondary: 270 80% 65%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 270 20% 20%;
-    --muted-foreground: 270 10% 70%;
-    --accent: 240 90% 65%;
+    --muted: 260 30% 20%;
+    --muted-foreground: 260 10% 70%;
+    --accent: 325 60% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 270 20% 25%;
-    --input: 270 20% 25%;
-    --ring: 270 80% 50%;
-    --radius: 0.75rem;
+    --border: 260 30% 25%;
+    --input: 260 30% 25%;
+    --ring: 325 60% 60%;
+    --radius: 1.5rem;
   }
 }
 
@@ -32,14 +33,24 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground selection:bg-primary selection:text-primary-foreground;
+    @apply bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground antialiased;
+    background-image: radial-gradient(circle at 0% 0%, hsl(var(--secondary) / 0.15) 0%, transparent 50%),
+                      radial-gradient(circle at 100% 100%, hsl(var(--primary) / 0.15) 0%, transparent 50%);
   }
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .neon-border {
@@ -50,13 +61,8 @@
   text-shadow: 0 0 10px hsl(var(--primary) / 0.5), 0 0 20px hsl(var(--primary) / 0.3);
 }
 
-.neon-blue-glow {
-  box-shadow: 0 0 20px -5px hsl(var(--secondary)), 0 0 10px -2px hsl(var(--secondary));
-}
-
-.glow-hover:hover {
-  box-shadow: 0 0 25px -5px hsl(var(--primary)), 0 0 15px -5px hsl(var(--secondary));
-  transition: all 0.3s ease-out;
+.input-auth {
+  @apply bg-transparent border-t-0 border-x-0 border-b border-white/20 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary transition-all duration-300 placeholder:text-muted-foreground/50;
 }
 
 ::-webkit-scrollbar {

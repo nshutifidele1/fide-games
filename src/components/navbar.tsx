@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,12 +8,10 @@ import { Gamepad2, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { name: "Home", href: "#" },
-  { name: "Games", href: "#games" },
-  { name: "Reviews", href: "#reviews" },
-  { name: "News", href: "#news" },
-  { name: "Community", href: "#community" },
-  { name: "Esports", href: "#esports" },
+  { name: "Home", href: "/" },
+  { name: "Games", href: "/#games" },
+  { name: "Reviews", href: "/#reviews" },
+  { name: "News", href: "/#news" },
 ];
 
 export function Navbar() {
@@ -61,12 +60,16 @@ export function Navbar() {
 
         {/* Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
-          <Button variant="ghost" className="text-foreground/80 hover:text-primary transition-all font-headline font-semibold">
-            Login
-          </Button>
-          <Button className="bg-primary hover:bg-primary/90 neon-border font-headline font-bold rounded-full px-6 transition-all duration-300">
-            Sign Up
-          </Button>
+          <Link href="/auth">
+            <Button variant="ghost" className="text-foreground/80 hover:text-primary transition-all font-headline font-semibold">
+              Login
+            </Button>
+          </Link>
+          <Link href="/auth">
+            <Button className="bg-primary hover:bg-primary/90 neon-border font-headline font-bold rounded-full px-6 transition-all duration-300">
+              Sign Up
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Toggle */}
@@ -93,12 +96,16 @@ export function Navbar() {
               </Link>
             ))}
             <div className="w-full h-px bg-primary/20" />
-            <Button variant="ghost" className="w-full text-xl font-headline font-bold">
-              Login
-            </Button>
-            <Button className="w-full bg-primary neon-border text-xl font-headline font-bold py-6">
-              Sign Up
-            </Button>
+            <Link href="/auth" className="w-full" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="ghost" className="w-full text-xl font-headline font-bold">
+                Login
+              </Button>
+            </Link>
+            <Link href="/auth" className="w-full" onClick={() => setMobileMenuOpen(false)}>
+              <Button className="w-full bg-primary neon-border text-xl font-headline font-bold py-6">
+                Sign Up
+              </Button>
+            </Link>
           </div>
         </div>
       )}
