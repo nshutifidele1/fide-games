@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Star, Play } from "lucide-react";
+import { Star, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -56,8 +56,8 @@ export function GameCard({ title, image, rating, genre, imageHint }: GameCardPro
 
         <div className="flex items-center gap-3 mt-2">
           <Button size="sm" className="bg-primary neon-border hover:neon-blue-glow font-headline font-bold flex-1">
-            <Play className="w-4 h-4 mr-2" />
-            PLAY NOW
+            <Download className="w-4 h-4 mr-2" />
+            DOWNLOAD
           </Button>
           <Button size="icon" variant="outline" className="border-white/10 glass hover:border-primary/50">
             <Star className="w-4 h-4" />
