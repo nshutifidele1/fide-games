@@ -38,9 +38,9 @@
     },
     {
       "id": "auth-illust",
-      "description": "Glowing aesthetic plant illustration",
-      "imageUrl": "https://picsum.photos/seed/aesthetic-plant/800/800",
-      "imageHint": "glowing plant"
+      "description": "Boy wearing VR headset with neon purple and blue lighting",
+      "imageUrl": "https://picsum.photos/seed/vr-boy-neon/800/800",
+      "imageHint": "vr headset"
     }
   ]
 }

@@ -16,7 +16,7 @@ export default function AuthPage() {
   const illust = PlaceHolderImages.find((img) => img.id === "auth-illust");
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]">
       {/* Back to Home */}
       <Link 
         href="/" 
@@ -33,10 +33,10 @@ export default function AuthPage() {
         className="auth-card w-full max-w-5xl rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row min-h-[600px]"
       >
         {/* Left Section: Form */}
-        <div className="flex-1 p-10 lg:p-16 flex flex-col justify-center relative">
+        <div className="flex-1 p-10 lg:p-16 flex flex-col justify-center relative bg-background/40 backdrop-blur-md">
           <div className="max-w-md mx-auto w-full">
             <div className="mb-10 text-center md:text-left">
-              <h1 className="text-5xl font-headline font-bold mb-2 tracking-tight text-[#d499ff]">
+              <h1 className="text-5xl font-headline font-bold mb-2 tracking-tight text-primary">
                 {isLogin ? "Sign In" : "Sign Up"}
               </h1>
               <p className="text-white/40 text-sm font-body tracking-wide">
@@ -83,7 +83,7 @@ export default function AuthPage() {
               </div>
 
               <div className="pt-6">
-                <Button className="w-full h-14 rounded-full bg-gradient-to-r from-[#6e45e2] to-[#88d3ce] text-white font-headline font-bold text-lg hover:shadow-[0_0_30px_rgba(110,69,226,0.4)] transition-all duration-300">
+                <Button className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white font-headline font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(var(--primary),0.3)]">
                   {isLogin ? "Enter Nexus" : "Sign Up"}
                 </Button>
               </div>
@@ -101,34 +101,30 @@ export default function AuthPage() {
         </div>
 
         {/* Right Section: Illustration */}
-        <div className="hidden md:flex flex-1 p-6 lg:p-8">
-          <div className="relative w-full h-full rounded-[2rem] overflow-hidden bg-[#0a0a1a] flex items-center justify-center">
-            {/* Background Glows */}
-            <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-primary/20 blur-3xl rounded-full" />
-            <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-secondary/20 blur-3xl rounded-full" />
-            
+        <div className="hidden md:flex flex-1 p-0">
+          <div className="relative w-full h-full overflow-hidden bg-[#0a0a1a] flex items-center justify-center">
             <Image
-              src={illust?.imageUrl || "https://picsum.photos/seed/purple-plant/800/800"}
+              src={illust?.imageUrl || "https://picsum.photos/seed/vr-boy/800/800"}
               alt="Artistic Illustration"
               fill
-              className="object-cover opacity-80"
-              data-ai-hint="glowing plant"
+              className="object-cover opacity-90"
+              data-ai-hint="vr headset"
             />
-            
-            {/* Subtle Overlay Grid */}
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
             
             {/* Logo Overlay */}
             <div className="absolute bottom-8 left-8 flex items-center gap-3 glass p-3 px-5 rounded-2xl">
               <Gamepad2 className="w-6 h-6 text-primary" />
               <span className="font-headline font-bold text-lg tracking-tight">FIDE GAMES</span>
             </div>
+
+            {/* Subtle Gradient Overlay to blend with the form side */}
+            <div className="absolute inset-0 bg-gradient-to-r from-background/20 via-transparent to-transparent pointer-events-none" />
           </div>
         </div>
       </motion.div>
 
-      {/* Background Decorative Circles */}
-      <div className="fixed -top-24 -left-24 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Background Decorative Glows */}
+      <div className="fixed -top-24 -left-24 w-96 h-96 bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="fixed -bottom-24 -right-24 w-[500px] h-[500px] bg-secondary/10 blur-[150px] rounded-full pointer-events-none" />
     </div>
   );
