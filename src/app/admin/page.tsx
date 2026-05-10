@@ -26,7 +26,8 @@ import {
   UserPlus,
   Clock,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Edit2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,7 +77,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useFirestore, useCollection, useAuth, useUser } from "@/firebase";
-import { collection, addDoc, serverTimestamp, deleteDoc, doc, query, orderBy, limit } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, deleteDoc, doc, query, orderBy, limit, updateDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -92,6 +93,8 @@ const chartConfig = {
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAddingGame, setIsAddingGame] = useState(false);
+  const [isEditingGame, setIsEditingGame] = useState(false);
+  const [editingGameId, setEditingGameId] = useState<string | null>(null);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isAddingNews, setIsAddingNews] = useState(false);
   const firestore = useFirestore();
@@ -102,6 +105,16 @@ export default function AdminDashboard() {
 
   // New Game Form State
   const [newGame, setNewGame] = useState({
+    title: "",
+    coverUrl: "",
+    downloadUrl: "",
+    trailerUrl: "",
+    zipPassword: "",
+    category: ""
+  });
+
+  // Edit Game Form State
+  const [editGame, setEditGame] = useState({
     title: "",
     coverUrl: "",
     downloadUrl: "",
@@ -187,7 +200,7 @@ export default function AdminDashboard() {
   }
 
   if (!user || user.email !== "nshutifidele1@gmail.com") {
-    return null; // Handled by useEffect redirect
+    return null;
   }
 
   const handleAddGame = () => {
@@ -204,6 +217,36 @@ export default function AdminDashboard() {
       toast({ title: "Success", description: "New title deployed to the Nexus repository." });
       setNewGame({ title: "", coverUrl: "", downloadUrl: "", trailerUrl: "", zipPassword: "", category: "" });
       setIsAddingGame(false);
+    });
+  };
+
+  const handleEditGameClick = (game: any) => {
+    setEditingGameId(game.id);
+    setEditGame({
+      title: game.title,
+      coverUrl: game.coverUrl,
+      downloadUrl: game.downloadUrl,
+      trailerUrl: game.trailerUrl || "",
+      zipPassword: game.zipPassword || "",
+      category: game.category
+    });
+    setIsEditingGame(true);
+  };
+
+  const handleUpdateGame = () => {
+    if (!firestore || !editingGameId) return;
+    if (!editGame.title || !editGame.coverUrl || !editGame.downloadUrl || !editGame.category) {
+      toast({ title: "Validation Error", description: "All mandatory payload parameters must be defined.", variant: "destructive" });
+      return;
+    }
+
+    updateDoc(doc(firestore, "games", editingGameId), {
+      ...editGame,
+      updatedAt: serverTimestamp()
+    }).then(() => {
+      toast({ title: "Success", description: "Title metadata updated in the repository." });
+      setIsEditingGame(false);
+      setEditingGameId(null);
     });
   };
 
@@ -397,7 +440,6 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Monthly Signup Analytics Chart */}
                   <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
                     <div className="flex items-center justify-between mb-8">
                       <div>
@@ -446,7 +488,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Recent Nexus Activity (Compact) */}
                   <div className="bg-white rounded-3xl shadow-sm border border-[#EFEFEF] p-8">
                     <h3 className="text-xl font-bold mb-6">Recent Nexus Activity</h3>
                     <div className="space-y-4">
@@ -641,15 +682,68 @@ export default function AdminDashboard() {
                             <Badge variant="outline">{game.category}</Badge>
                           </TableCell>
                           <TableCell className="py-6 px-8 text-center">
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteGame(game.id)} className="text-[#FF6A55]">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex items-center justify-center gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => handleEditGameClick(game)} className="text-[#4D86FF]">
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteGame(game.id)} className="text-[#FF6A55]">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Edit Game Dialog */}
+                <Dialog open={isEditingGame} onOpenChange={setIsEditingGame}>
+                  <DialogContent className="sm:max-w-[600px] rounded-3xl p-8 border-none bg-white max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="mb-6">
+                      <DialogTitle className="font-headline text-2xl font-bold">Update Title Meta</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Game Title</Label>
+                        <Input className={inputStyles} value={editGame.title} onChange={(e) => setEditGame({...editGame, title: e.target.value})} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Category</Label>
+                        <Select value={editGame.category} onValueChange={(v) => setEditGame({...editGame, category: v})}>
+                          <SelectTrigger className={inputStyles}>
+                            <SelectValue placeholder="Select Category" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {categories?.map((cat: any) => (
+                              <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Cover URL</Label>
+                        <Input className={inputStyles} value={editGame.coverUrl} onChange={(e) => setEditGame({...editGame, coverUrl: e.target.value})} />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Trailer URL</Label>
+                        <Input className={inputStyles} value={editGame.trailerUrl} onChange={(e) => setEditGame({...editGame, trailerUrl: e.target.value})} />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">Download URL</Label>
+                        <Input className={inputStyles} value={editGame.downloadUrl} onChange={(e) => setEditGame({...editGame, downloadUrl: e.target.value})} />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label className="text-[11px] font-bold uppercase tracking-widest text-[#808191]">ZIP Password</Label>
+                        <Input className={inputStyles} value={editGame.zipPassword} onChange={(e) => setEditGame({...editGame, zipPassword: e.target.value})} />
+                      </div>
+                    </div>
+                    <DialogFooter className="mt-10 gap-3">
+                      <Button variant="ghost" onClick={() => setIsEditingGame(false)}>Cancel</Button>
+                      <Button onClick={handleUpdateGame} className="bg-[#4D86FF] text-white">Commit Changes</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </TabsContent>
 
               <TabsContent value="news" className="space-y-8">
