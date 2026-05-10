@@ -18,8 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("nshutifidele1@gmail.com");
-  const [password, setPassword] = useState("12345qwert()");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
