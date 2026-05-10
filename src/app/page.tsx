@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Navbar } from "@/components/navbar";
 import { HeroScene } from "@/components/hero-scene";
 import { FeaturedCarousel } from "@/components/featured-carousel";
@@ -30,10 +30,10 @@ export default function Home() {
   const firestore = useFirestore();
   const router = useRouter();
   
-  const gamesRef = firestore ? collection(firestore, "games") : null;
+  const gamesRef = useMemo(() => firestore ? collection(firestore, "games") : null, [firestore]);
   const { data: allGames, loading: gamesLoading } = useCollection(gamesRef);
 
-  const gamesWithTrailers = allGames?.filter(g => g.trailerUrl) || [];
+  const gamesWithTrailers = useMemo(() => allGames?.filter(g => g.trailerUrl) || [], [allGames]);
 
   const getYouTubeEmbedUrl = (url: string) => {
     if (!url) return null;

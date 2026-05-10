@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { GameCard } from "./game-card";
 import { useFirestore, useCollection } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
@@ -10,9 +10,9 @@ import { motion } from "framer-motion";
 
 export function FeaturedCarousel() {
   const firestore = useFirestore();
-  // Increased limit for a better grid view
-  const gamesRef = firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc"), limit(24)) : null;
-  const { data: games, loading } = useCollection(gamesRef);
+  
+  const gamesQuery = useMemo(() => firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc"), limit(24)) : null, [firestore]);
+  const { data: games, loading } = useCollection(gamesQuery);
 
   return (
     <section id="games" className="py-24 px-6 overflow-hidden bg-gradient-to-b from-transparent to-primary/5">

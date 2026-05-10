@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Input } from "@/components/ui/input";
@@ -23,18 +23,18 @@ export default function SearchPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const firestore = useFirestore();
 
-  const gamesRef = firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc")) : null;
-  const { data: games, loading } = useCollection(gamesRef);
+  const gamesQuery = useMemo(() => firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc")) : null, [firestore]);
+  const { data: games, loading } = useCollection(gamesQuery);
 
-  const categoriesRef = firestore ? query(collection(firestore, "categories"), orderBy("name", "asc")) : null;
-  const { data: categories } = useCollection(categoriesRef);
+  const categoriesQuery = useMemo(() => firestore ? query(collection(firestore, "categories"), orderBy("name", "asc")) : null, [firestore]);
+  const { data: categories } = useCollection(categoriesQuery);
 
-  const filteredGames = games?.filter(game => {
+  const filteredGames = useMemo(() => games?.filter(game => {
     const matchesQuery = game.title.toLowerCase().includes(queryTerm.toLowerCase()) || 
                          game.category.toLowerCase().includes(queryTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || game.category === selectedCategory;
     return matchesQuery && matchesCategory;
-  });
+  }), [games, queryTerm, selectedCategory]);
 
   return (
     <div className="min-h-screen bg-background">

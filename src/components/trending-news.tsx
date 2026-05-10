@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Image from "next/image";
 import { ArrowRight, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,9 @@ import { formatDistanceToNow } from "date-fns";
 
 export function TrendingNews() {
   const firestore = useFirestore();
-  const newsRef = firestore ? query(collection(firestore, "news"), orderBy("createdAt", "desc"), limit(6)) : null;
-  const { data: newsItems, loading } = useCollection(newsRef);
+  
+  const newsQuery = useMemo(() => firestore ? query(collection(firestore, "news"), orderBy("createdAt", "desc"), limit(6)) : null, [firestore]);
+  const { data: newsItems, loading } = useCollection(newsQuery);
 
   return (
     <section id="news" className="py-24 px-6 max-w-7xl mx-auto">

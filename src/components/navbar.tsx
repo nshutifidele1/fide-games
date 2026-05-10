@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Gamepad2, Menu, X, LogOut, User, LayoutDashboard, Search as SearchIcon } from "lucide-react";
@@ -39,8 +39,8 @@ export function Navbar() {
   const firestore = useFirestore();
   const router = useRouter();
 
-  const gamesRef = firestore ? query(collection(firestore, "games"), orderBy("title", "asc")) : null;
-  const { data: games } = useCollection(gamesRef);
+  const gamesQuery = useMemo(() => firestore ? query(collection(firestore, "games"), orderBy("title", "asc")) : null, [firestore]);
+  const { data: games } = useCollection(gamesQuery);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,12 +54,13 @@ export function Navbar() {
     if (auth) await signOut(auth);
   };
 
-  const filteredGames = searchQuery.trim() === "" 
+  const filteredGames = useMemo(() => 
+    searchQuery.trim() === "" 
     ? [] 
     : games?.filter(game => 
         game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         game.category.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 5);
+      ).slice(0, 5), [games, searchQuery]);
 
   const handleGameClick = (gameId: string) => {
     setSearchQuery("");

@@ -134,17 +134,17 @@ export default function AdminDashboard() {
     category: ""
   });
 
-  const gamesRef = firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc")) : null;
-  const { data: games, loading: gamesLoading } = useCollection(gamesRef);
+  const gamesQuery = useMemo(() => firestore ? query(collection(firestore, "games"), orderBy("createdAt", "desc")) : null, [firestore]);
+  const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
 
-  const categoriesRef = firestore ? query(collection(firestore, "categories"), orderBy("name", "asc")) : null;
-  const { data: categories, loading: categoriesLoading } = useCollection(categoriesRef);
+  const categoriesQuery = useMemo(() => firestore ? query(collection(firestore, "categories"), orderBy("name", "asc")) : null, [firestore]);
+  const { data: categories, loading: categoriesLoading } = useCollection(categoriesQuery);
 
-  const usersRef = firestore ? query(collection(firestore, "users"), orderBy("createdAt", "desc")) : null;
-  const { data: registeredUsers, loading: usersLoading } = useCollection(usersRef);
+  const usersQuery = useMemo(() => firestore ? query(collection(firestore, "users"), orderBy("createdAt", "desc")) : null, [firestore]);
+  const { data: registeredUsers, loading: usersLoading } = useCollection(usersQuery);
 
-  const newsRef = firestore ? query(collection(firestore, "news"), orderBy("createdAt", "desc")) : null;
-  const { data: newsItems, loading: newsLoading } = useCollection(newsRef);
+  const newsQuery = useMemo(() => firestore ? query(collection(firestore, "news"), orderBy("createdAt", "desc")) : null, [firestore]);
+  const { data: newsItems, loading: newsLoading } = useCollection(newsQuery);
 
   // Analytics Calculation
   const analyticsData = useMemo(() => {
