@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useFirestore, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
@@ -21,7 +20,11 @@ export default function GameDetailsPage() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
 
-  const gameRef = firestore && gameId ? doc(firestore, "games", gameId as string) : null;
+  const gameRef = useMemo(() => 
+    firestore && gameId ? doc(firestore, "games", gameId as string) : null, 
+    [firestore, gameId]
+  );
+  
   const { data: game, loading, error } = useDoc(gameRef);
 
   if (loading) {
