@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Gamepad2, Twitter, Github, Youtube, Send, MessageSquare } from "lucide-react";
+import { Gamepad2, Twitter, Github, Youtube, Send, MessageSquare, Mail } from "lucide-react";
 
 export function Footer() {
   return (
@@ -82,7 +82,17 @@ export function Footer() {
         </div>
 
         <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <span className="text-muted-foreground text-xs font-headline">© 2025 FIDE GAMES PROTOCOL. ALL RIGHTS RESERVED.</span>
+          <div className="flex flex-col gap-2">
+            <span className="text-muted-foreground text-xs font-headline uppercase tracking-widest">© 2025 FIDE GAMES PROTOCOL. ALL RIGHTS RESERVED.</span>
+            <div className="flex items-center gap-2 text-xs font-headline font-bold text-primary">
+              <span>DEVELOPED BY FIDE</span>
+              <span className="text-muted-foreground/30">|</span>
+              <Link href="mailto:nshutifidele1@gmail.com" className="hover:underline flex items-center gap-1">
+                <Mail className="w-3 h-3" />
+                nshutifidele1@gmail.com
+              </Link>
+            </div>
+          </div>
           <div className="flex gap-6 text-[10px] font-headline font-bold text-muted-foreground tracking-widest">
             <Link href="#" className="hover:text-white transition-colors">SYSTEM STATUS: OPTIMAL</Link>
             <Link href="#" className="hover:text-white transition-colors">Uptime: 99.99%</Link>
