@@ -28,6 +28,8 @@ const NAV_LINKS = [
   { name: "News", href: "/#news" },
 ];
 
+const ADMIN_EMAIL = "nshutifidele1@gmail.com";
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,6 +40,8 @@ export function Navbar() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
+
+  const isAdmin = useMemo(() => user?.email === ADMIN_EMAIL, [user]);
 
   const gamesQuery = useMemo(() => firestore ? query(collection(firestore, "games"), orderBy("title", "asc")) : null, [firestore]);
   const { data: games } = useCollection(gamesQuery);
@@ -133,13 +137,19 @@ export function Navbar() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-primary/10" />
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin" className="flex items-center cursor-pointer">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      <span>Admin Panel</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-primary/10" />
+                  
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="flex items-center cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          <span>Admin Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-primary/10" />
+                    </>
+                  )}
+                  
                   <DropdownMenuItem className="focus:bg-destructive/20 cursor-pointer text-destructive" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Disconnect</span>
@@ -250,11 +260,13 @@ export function Navbar() {
             <div className="w-full h-px bg-primary/20" />
             {user ? (
               <>
-                <Link href="/admin" className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full text-xl font-headline font-bold">
-                    Admin Panel
-                  </Button>
-                </Link>
+                {isAdmin && (
+                  <Link href="/admin" className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full text-xl font-headline font-bold">
+                      Admin Panel
+                    </Button>
+                  </Link>
+                )}
                 <Button variant="ghost" className="w-full text-xl font-headline font-bold text-destructive" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
                   Disconnect
                 </Button>

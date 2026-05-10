@@ -90,6 +90,8 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const ADMIN_EMAIL = "nshutifidele1@gmail.com";
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAddingGame, setIsAddingGame] = useState(false);
@@ -180,13 +182,15 @@ export default function AdminDashboard() {
 
   // Authorization check
   useEffect(() => {
-    if (!userLoading && (!user || user.email !== "nshutifidele1@gmail.com")) {
-      toast({ 
-        title: "Restricted Area", 
-        description: "Your credentials do not have administrative clearance for this terminal.",
-        variant: "destructive"
-      });
-      router.push("/auth");
+    if (!userLoading) {
+      if (!user || user.email !== ADMIN_EMAIL) {
+        toast({ 
+          title: "Access Restricted", 
+          description: "This encrypted terminal is reserved for Super Administrators.",
+          variant: "destructive"
+        });
+        router.push("/auth");
+      }
     }
   }, [user, userLoading, router, toast]);
 
@@ -199,7 +203,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!user || user.email !== "nshutifidele1@gmail.com") {
+  if (!user || user.email !== ADMIN_EMAIL) {
     return null;
   }
 
