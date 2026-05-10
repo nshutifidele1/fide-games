@@ -79,8 +79,8 @@ export default function Home() {
               Step into FIDE GAMES. A high-fidelity gaming sanctuary designed for the next generation of digital pioneers.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Button size="lg" onClick={() => document.getElementById('search-nexus')?.scrollIntoView({ behavior: 'smooth' })} className="bg-primary hover:bg-primary/90 neon-border h-14 px-10 rounded-full font-headline font-bold text-lg group">
-                ENTER THE NEXUS
+              <Button size="lg" onClick={() => document.getElementById('games')?.scrollIntoView({ behavior: 'smooth' })} className="bg-primary hover:bg-primary/90 neon-border h-14 px-10 rounded-full font-headline font-bold text-lg group">
+                ALL GAMES
                 <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
 
